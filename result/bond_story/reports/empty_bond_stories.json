@@ -1,0 +1,54 @@
+[
+  {
+    "number": 1,
+    "schedule_id": 190172,
+    "character_id": 19017,
+    "favor_rank": 2,
+    "schedule_group_id": 19017,
+    "order_in_group": 1,
+    "scenario_group_id": 1901702,
+    "location": "",
+    "schedule_location": "夏莱",
+    "scene_locations": [],
+    "status": "empty_text"
+  },
+  {
+    "number": 2,
+    "schedule_id": 190173,
+    "character_id": 19017,
+    "favor_rank": 3,
+    "schedule_group_id": 19017,
+    "order_in_group": 2,
+    "scenario_group_id": 1901703,
+    "location": "",
+    "schedule_location": "夏莱",
+    "scene_locations": [],
+    "status": "empty_text"
+  },
+  {
+    "number": 3,
+    "schedule_id": 190175,
+    "character_id": 19017,
+    "favor_rank": 5,
+    "schedule_group_id": 19017,
+    "order_in_group": 3,
+    "scenario_group_id": 1901705,
+    "location": "",
+    "schedule_location": "夏莱",
+    "scene_locations": [],
+    "status": "empty_text"
+  },
+  {
+    "number": 4,
+    "schedule_id": 190176,
+    "character_id": 19017,
+    "favor_rank": 6,
+    "schedule_group_id": 19017,
+    "order_in_group": 4,
+    "scenario_group_id": 1901706,
+    "location": "",
+    "schedule_location": "夏莱",
+    "scene_locations": [],
+    "status": "empty_text"
+  }
+]

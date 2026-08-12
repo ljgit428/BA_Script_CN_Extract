@@ -22,6 +22,9 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCENARIO_DIR = PROJECT_ROOT / "script" / "scenario"
 MOMOTALK_DIR = PROJECT_ROOT / "script" / "Momotalk"
+BOND_STORY_DIR = PROJECT_ROOT / "script" / "bond_story"
+PROJECT_BOND_STORY_SCRIPT = BOND_STORY_DIR / "generate_bond_stories.py"
+
 
 
 def run_step(label: str, script: Path, *arguments: str) -> None:
@@ -36,6 +39,10 @@ def run_step(label: str, script: Path, *arguments: str) -> None:
 def generate_scenario() -> None:
     run_step("切分 ScenarioScript raw 数据", SCENARIO_DIR / "split_scenario_groups.py", "--all")
     run_step("生成 scenario_texts", SCENARIO_DIR / "convert_scenario_to_txt.py", "--all")
+
+
+def generate_bond_story() -> None:
+    run_step("生成羁绊剧情", PROJECT_BOND_STORY_SCRIPT)
 
 
 def generate_momotalk() -> None:
@@ -62,15 +69,23 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="只生成 result/Momotalk 下的 Academy Messenger 输出。",
     )
+    modes.add_argument(
+        "--bond-story-only",
+        action="store_true",
+        help="只生成 result/bond_story 下的羁绊剧情输出。",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
-    if not args.momotalk_only:
-        generate_scenario()
-    if not args.scenario_only:
-        generate_momotalk()
+    if args.bond_story_only:
+        generate_bond_story()
+    else:
+        if not args.momotalk_only:
+            generate_scenario()
+        if not args.scenario_only:
+            generate_momotalk()
     print("\n全部生成完成，输出位于 result/。")
 
 

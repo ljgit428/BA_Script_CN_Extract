@@ -10,6 +10,11 @@
 !/result/scenario/
 !/result/scenario/scenario_texts/
 !/result/scenario/scenario_texts/**
+!/result/bond_story/
+!/result/bond_story/bond_story_text/
+!/result/bond_story/bond_story_text/**
+!/result/bond_story/reports/
+!/result/bond_story/reports/**
 
 # Python local artifacts.
 __pycache__/
