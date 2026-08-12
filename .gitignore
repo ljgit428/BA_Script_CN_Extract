@@ -1,0 +1,11 @@
+# Large raw game data; regenerate/use locally, do not commit.
+/raw/
+
+# Generated JSON/TXT outputs.
+/result/
+
+# Python local artifacts.
+__pycache__/
+*.py[cod]
+.venv/
+venv/
