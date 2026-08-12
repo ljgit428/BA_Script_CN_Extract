@@ -1,8 +1,15 @@
 # Large raw game data; regenerate/use locally, do not commit.
 /raw/
 
-# Generated JSON/TXT outputs.
-/result/
+# Generated outputs are ignored by default. Only the two curated final outputs
+# below are kept as a small, reviewable backup in this repository.
+/result/*
+!/result/Momotalk/
+!/result/Momotalk/Momotalk_message/
+!/result/Momotalk/Momotalk_message/**
+!/result/scenario/
+!/result/scenario/scenario_texts/
+!/result/scenario/scenario_texts/**
 
 # Python local artifacts.
 __pycache__/

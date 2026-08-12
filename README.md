@@ -5,7 +5,7 @@
 - `Momotalk_message`：按角色整理的 AI 友好型 Academy Messenger 通讯稿
 - `scenario_texts`：按剧情 `GroupId` 整理的 Scenario 中文剧情稿
 
-原始数据不包含在本仓库中，生成结果也不会提交到 Git。数据来自：
+原始数据不包含在本仓库中；只将两个重点最终结果作为备份提交到 Git。数据来自：
 
 > [electricgoat/ba-data](https://github.com/electricgoat/ba-data)
 
@@ -145,20 +145,36 @@ script/
 └── generate.py
 ```
 
-- `raw/`：本地原始数据，已加入 Git 忽略
-- `result/`：本地生成结果，已加入 Git 忽略
+- `raw/`：本地原始数据，始终忽略
+- `result/scenario/all_scenarios/`：Scenario 中间 JSON，忽略
+- `result/scenario/scenario_texts/`：Scenario 最终 TXT，作为备份提交
+- `result/Momotalk/Momotalk_message/`：Momotalk 最终 TXT，作为备份提交
+- 其他 `result/` 子目录：忽略
 - `script/`：可提交的转换脚本和文档
 
 ## Git 说明
 
-根目录 `.gitignore` 会忽略：
+根目录 `.gitignore` 会忽略原始数据和大多数生成目录：
 
 ```text
 /raw/
-/result/
+/result/*
 ```
 
-因此 GitHub 仓库只保存脚本、说明和配置，不保存体积较大的游戏数据及生成结果。首次使用时需要先准备 `raw/ba-data-global/`，再运行生成命令。
+仅以下两个重点结果目录例外，会作为仓库备份提交：
+
+```text
+/result/Momotalk/Momotalk_message/
+/result/scenario/scenario_texts/
+```
+
+首次使用时需要先准备 `raw/ba-data-global/`，再运行生成命令。重新生成后，如果需要更新备份，执行：
+
+```bash
+git add -f result/Momotalk/Momotalk_message result/scenario/scenario_texts
+git commit -m "Update generated text backup"
+git push
+```
 
 ## 相关说明
 
