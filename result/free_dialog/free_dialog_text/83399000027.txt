@@ -1,0 +1,11 @@
+=== 自由会话 83399000027 ===
+场景：FieldSeason 833
+FieldDateId：83399
+来源表：CharacterDialogFieldExcelTable.json
+说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+--- 阶段 0 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Bulb（Bulb）
+内容：[전구]
+持续时间：1000 ms

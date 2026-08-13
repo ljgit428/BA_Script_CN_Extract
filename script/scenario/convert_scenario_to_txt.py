@@ -326,6 +326,37 @@ def format_speaker(speaker: str, text: str) -> list[str]:
     return [f"{speaker}: {line.strip()}" for line in cleaned.splitlines() if line.strip()]
 
 
+def append_choice_item(
+    output: list[str],
+    choice_id: str,
+    choice_text: str,
+    block_open: bool,
+) -> bool:
+    """将一个选项及其已有反应追加到统一的选择块。"""
+    lines = format_speaker("老师", choice_text)
+    if not lines:
+        return block_open
+    if not block_open:
+        if output and output[-1] != "":
+            output.append("")
+        output.append("<选择>")
+    elif output and output[-1] != "":
+        output.append("")
+    lines[0] = f"{choice_id}. {lines[0]}"
+    output.extend(lines)
+    return True
+
+
+def close_choice_block(output: list[str], block_open: bool) -> bool:
+    """关闭选择块，并在后续公共剧情前保留一个空行。"""
+    if not block_open:
+        return False
+    if output and output[-1] != "</选择>":
+        output.append("</选择>")
+    output.append("")
+    return False
+
+
 def parse_choice_entries(script: str, translation: str) -> list[tuple[str, str]]:
     """按 [s5]/[s6]/[ns] 标签提取每个选项，避免复用整条 TextTw。"""
     tag_pattern = re.compile(r"^\[(s|ns)(\d*)\]\s*(.*)$", re.I)
@@ -413,6 +444,7 @@ def convert_rows(
     pending_choices: dict[str, str] = {}
     pending_order: list[str] = []
     active_branch: str | None = None
+    choice_block_open = False
 
     if rows and rows[0].get("GroupId") is not None:
         output.extend([f"GroupId: {rows[0]['GroupId']}", ""])
@@ -449,7 +481,7 @@ def convert_rows(
             for line in script_lines
         )
         # 场景标题/屏幕文字虽然会输出为旁白，但不属于分支对白。
-        # 它们不能消耗 pending_choices，也不能标记分支反应结束。
+        # 它们不能消耗 pending_choices，也不能结束当前选择块。
         has_branch_content = has_branch_content and not has_scene_text
         has_visible_content = bool(translation and (has_branch_content or any(
             line.lower().startswith(("#title;", "#nextepisode;", "#continued"))
@@ -480,14 +512,19 @@ def convert_rows(
         if pending_choices and selection_group == "0" and has_visible_content:
             for choice_id in pending_order:
                 if choice_id in pending_choices:
-                    output.extend([f"【选项{choice_id}】"])
-                    output.extend(format_speaker("老师", pending_choices[choice_id]))
+                    choice_block_open = append_choice_item(
+                        output,
+                        choice_id,
+                        pending_choices[choice_id],
+                        choice_block_open,
+                    )
             pending_choices.clear()
             pending_order.clear()
+            choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
 
-        # 只有回到 SelectionGroup=0 的普通角色对白，才结束当前分支。
-        # 标题、#st 旁白和其他演出记录不能触发共同剧情分隔线。
+        # 只有回到 SelectionGroup=0 的普通角色对白，才结束当前选择块。
+        # 标题、#st 旁白和其他演出记录不能触发选择块的间隔。
         is_public_dialogue = (
             selection_group == "0"
             and bool(events and translation)
@@ -499,30 +536,27 @@ def convert_rows(
             )
         )
         if is_public_dialogue:
+            choice_block_open = close_choice_block(output, choice_block_open)
             if active_branch is not None:
                 if output and output[-1] != "":
                     output.append("")
-                output.append("【分支反应结束，进入共同剧情】")
-                output.append("")
             active_branch = None
 
-        # 当前记录是某个选项的实际反应时，先输出该选项，再输出明确的反应标记。
+        # 当前记录是某个选项的实际反应时，将选项和反应合并到同一个选择块中。
         if selection_group != "0" and selection_group in pending_choices and has_branch_content:
             choice_text = pending_choices.pop(selection_group)
             pending_order[:] = [choice_id for choice_id in pending_order if choice_id != selection_group]
-            if output and output[-1] != "":
-                output.append("")
-            output.extend([f"【选项{selection_group}】"])
-            output.extend(format_speaker("老师", choice_text))
-            if output and output[-1] != "":
-                output.append("")
-            output.append(f"【选项{selection_group}的后续反应】")
+            choice_block_open = append_choice_item(
+                output,
+                selection_group,
+                choice_text,
+                choice_block_open,
+            )
             active_branch = selection_group
         elif selection_group != "0" and has_branch_content and active_branch != selection_group:
             # 同一分支可能包含多条连续对白；只有切换到另一分支时重新标记。
             if output and output[-1] != "":
                 output.append("")
-            output.append(f"【选项{selection_group}的后续反应】")
             active_branch = selection_group
 
         for script_line in script_lines:
@@ -575,8 +609,13 @@ def convert_rows(
     if pending_choices:
         for choice_id in pending_order:
             if choice_id in pending_choices:
-                output.extend([f"【选项{choice_id}】"])
-                output.extend(format_speaker("老师", pending_choices[choice_id]))
+                choice_block_open = append_choice_item(
+                    output,
+                    choice_id,
+                    pending_choices[choice_id],
+                    choice_block_open,
+                )
+    close_choice_block(output, choice_block_open)
 
     while output and output[-1] == "":
         output.pop()

@@ -1,0 +1,11 @@
+=== 自由会话 84399000015 ===
+场景：千年EXPO
+FieldDateId：84399
+来源表：CharacterDialogFieldExcelTable.json
+说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+--- 阶段 0 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms

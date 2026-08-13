@@ -1,0 +1,26 @@
+=== 自由会话 83306065610 ===
+场景：FieldSeason 833
+关联角色：阳奈（NP0205）
+FieldDateId：83306
+场景资源：Field833/Field_833_Zone06
+世界地图区域：69
+来源表：CharacterDialogFieldExcelTable.json
+说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+--- 阶段 0 ---
+说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
+类型：省略号（Dot）
+内容：[…]
+持续时间：2000 ms
+
+--- 阶段 1 ---
+说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
+类型：Heart（Heart）
+内容：[하트]
+持续时间：1000 ms
+
+--- 阶段 2 ---
+说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
+类型：内心独白（Think）
+内容：（擅自拿了牛奶，得跟供给部说一声才行）
+持续时间：2500 ms

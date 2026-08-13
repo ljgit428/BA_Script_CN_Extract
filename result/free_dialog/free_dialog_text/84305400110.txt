@@ -1,0 +1,26 @@
+=== 自由会话 84305400110 ===
+场景：千年EXPO
+关联角色：圣亚（CH0070）
+FieldDateId：84305
+场景资源：Field843/Field_843_Zone01
+世界地图区域：843040
+来源表：CharacterDialogFieldExcelTable.json
+说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+--- 阶段 0 ---
+说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
+类型：对话（Talk）
+内容：呼……
+持续时间：2500 ms
+
+--- 阶段 1 ---
+说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
+类型：对话（Talk）
+内容：（真是漫长的一天）
+持续时间：2500 ms
+
+--- 阶段 2 ---
+说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
+类型：对话（Talk）
+内容：（最后来整理一下情况吧）
+持续时间：2500 ms

@@ -1,8 +1,8 @@
 # Large raw game data; regenerate/use locally, do not commit.
 /raw/
 
-# Generated outputs are ignored by default. Only the two curated final outputs
-# below are kept as a small, reviewable backup in this repository.
+# Generated outputs are ignored by default. Curated final text outputs below
+# are kept as small, reviewable backups in this repository.
 /result/*
 !/result/Momotalk/
 !/result/Momotalk/Momotalk_message/
@@ -15,6 +15,11 @@
 !/result/bond_story/bond_story_text/**
 !/result/bond_story/reports/
 !/result/bond_story/reports/**
+!/result/free_dialog/
+!/result/free_dialog/free_dialog_text/
+!/result/free_dialog/free_dialog_text/**
+!/result/free_dialog/reports/
+!/result/free_dialog/reports/**
 
 # Python local artifacts.
 __pycache__/

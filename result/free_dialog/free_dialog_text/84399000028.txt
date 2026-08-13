@@ -1,0 +1,113 @@
+=== 自由会话 84399000028 ===
+场景：千年EXPO
+FieldDateId：84399
+来源表：CharacterDialogFieldExcelTable.json
+说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+--- 阶段 0 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 1 ---
+说话者：TargetIndex 1（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 2 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 3 ---
+说话者：TargetIndex 2（角色名仍未在 Field 数据中直接提供）
+类型：Bulb（Bulb）
+内容：[전구]
+持续时间：1000 ms
+
+--- 阶段 4 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 5 ---
+说话者：TargetIndex 3（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 6 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 7 ---
+说话者：TargetIndex 4（角色名仍未在 Field 数据中直接提供）
+类型：疑问（Question）
+内容：[…]
+持续时间：1000 ms
+
+--- 阶段 8 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 9 ---
+说话者：TargetIndex 5（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 10 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 11 ---
+说话者：TargetIndex 6（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 12 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 13 ---
+说话者：TargetIndex 7（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 14 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 15 ---
+说话者：TargetIndex 8（角色名仍未在 Field 数据中直接提供）
+类型：疑问（Question）
+内容：[…]
+持续时间：1000 ms
+
+--- 阶段 16 ---
+说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms
+
+--- 阶段 17 ---
+说话者：TargetIndex 9（角色名仍未在 Field 数据中直接提供）
+类型：Chat（Chat）
+内容：[재잘]
+持续时间：1000 ms

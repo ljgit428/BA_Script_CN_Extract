@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """从仓库内 raw 数据重新生成 result 下的文本和中间文件。
 
-默认运行完整流水线；也可以只运行 scenario 或 Momotalk 子流水线：
+默认运行完整流水线；也可以只运行某个子流水线：
 
     python script/generate.py
     python script/generate.py --scenario-only
     python script/generate.py --momotalk-only
+    python script/generate.py --free-dialog-only
 
 所有默认路径都由各转换器根据脚本位置解析，因此不依赖当前工作目录，
 也不再依赖外部的 F:/data_collection 数据目录。
@@ -23,7 +24,9 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SCENARIO_DIR = PROJECT_ROOT / "script" / "scenario"
 MOMOTALK_DIR = PROJECT_ROOT / "script" / "Momotalk"
 BOND_STORY_DIR = PROJECT_ROOT / "script" / "bond_story"
+FREE_DIALOG_DIR = PROJECT_ROOT / "script" / "free_dialog"
 PROJECT_BOND_STORY_SCRIPT = BOND_STORY_DIR / "generate_bond_stories.py"
+PROJECT_FREE_DIALOG_SCRIPT = FREE_DIALOG_DIR / "generate_free_dialog.py"
 
 
 
@@ -45,6 +48,10 @@ def generate_bond_story() -> None:
     run_step("生成羁绊剧情", PROJECT_BOND_STORY_SCRIPT)
 
 
+def generate_free_dialog() -> None:
+    run_step("生成 Field 自由会话", PROJECT_FREE_DIALOG_SCRIPT)
+
+
 def generate_momotalk() -> None:
     converter = MOMOTALK_DIR / "academy_messanger_to_txt.py"
     run_step("生成 Academy Messenger 分组文本", converter)
@@ -56,7 +63,7 @@ def generate_momotalk() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="使用 raw 数据在 result 下重新生成 Scenario 和 Momotalk 输出。"
+        description="使用 raw 数据在 result 下重新生成各类文本输出。"
     )
     modes = parser.add_mutually_exclusive_group()
     modes.add_argument(
@@ -74,6 +81,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="只生成 result/bond_story 下的羁绊剧情输出。",
     )
+    modes.add_argument(
+        "--free-dialog-only",
+        action="store_true",
+        help="只生成 result/free_dialog 下的 Field 自由会话输出。",
+    )
     return parser.parse_args()
 
 
@@ -81,6 +93,8 @@ def main() -> None:
     args = parse_args()
     if args.bond_story_only:
         generate_bond_story()
+    elif args.free_dialog_only:
+        generate_free_dialog()
     else:
         if not args.momotalk_only:
             generate_scenario()
