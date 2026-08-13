@@ -183,6 +183,9 @@ def clean_text(value: Any, converter: OpenCC) -> str:
     text = str(value or "").replace("\\n", "\n").replace("#n", "\n")
     text = text.replace("[USERNAME]老师", "老师")
     text = re.sub(r"\[ruby=[^\]]*\](.*?)\[/ruby\]", r"\1", text, flags=re.S)
+    # 移除 Unity 文本颜色引擎标记，例如 [FF6666]文本[-]。
+    text = re.sub(r"\[[0-9A-F]{6}\]", "", text, flags=re.I)
+    text = text.replace("[-]", "")
     text = re.sub(r"\s*\((?:SeleToGroup|SeleGroup):\s*\d+\)", "", text)
     text = text.replace("<br>", "\n").replace("<br/>", "\n")
     text = re.sub(r"[ \t]+", " ", text)

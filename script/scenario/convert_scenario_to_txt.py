@@ -195,6 +195,9 @@ def clean_text(value: str) -> str:
     text = text.replace("[USERNAME]老师", "老师")
     text = re.sub(r"\[ruby=[^\]]*\](.*?)\[/ruby\]", r"\1", text, flags=re.S)
     text = re.sub(r"\[(?:wa|wait|se|voice):[^\]]*\]", "", text, flags=re.I)
+    # 移除 Unity 文本颜色引擎标记，例如 [FF6666]文本[-]。
+    text = re.sub(r"\[[0-9A-F]{6}\]", "", text, flags=re.I)
+    text = text.replace("[-]", "")
     text = re.sub(r"\s*\((?:SeleToGroup|SeleGroup):\s*\d+\)", "", text)
     text = text.replace("<br>", "\n").replace("<br/>", "\n")
     text = re.sub(r"[ \t]+", " ", text)
@@ -319,11 +322,47 @@ def strip_matching_script_prefix(
     return "\n".join(cleaned_lines)
 
 
-def format_speaker(speaker: str, text: str) -> list[str]:
+def format_speaker(
+    speaker: str,
+    text: str,
+    resolver: CharacterNameResolver | None = None,
+) -> list[str]:
     cleaned = clean_text(text)
     if not cleaned:
         return []
-    return [f"{speaker}: {line.strip()}" for line in cleaned.splitlines() if line.strip()]
+
+    def plain_lines(current_speaker: str, value: str) -> list[str]:
+        return [
+            f"{current_speaker}: {line.strip()}"
+            for line in value.splitlines()
+            if line.strip()
+        ]
+
+    log_pattern = re.compile(r"\[log=([^\]]+)\](.*?)\[/log\]", flags=re.I | re.S)
+    if speaker != "旁白" or not log_pattern.search(cleaned):
+        return plain_lines(speaker, cleaned)
+
+    output: list[str] = []
+    cursor = 0
+    for match in log_pattern.finditer(cleaned):
+        prefix = cleaned[cursor:match.start()]
+        # “―” is a screenplay marker introducing the logged speaker, not
+        # dialogue content.
+        if prefix.strip().strip("―—–-"):
+            output.extend(plain_lines("旁白", prefix))
+
+        raw_role = match.group(1).strip()
+        role = raw_role
+        if resolver is not None:
+            role, _ = resolver.display_name(raw_role)
+        content = re.sub(r"^\s*[―—–-]\s*", "", match.group(2))
+        output.extend(plain_lines(role, content))
+        cursor = match.end()
+
+    suffix = cleaned[cursor:]
+    if suffix.strip():
+        output.extend(plain_lines("旁白", suffix))
+    return output
 
 
 def append_choice_item(
@@ -398,6 +437,7 @@ def align_dialogue(
     events: list[tuple[str, str]],
     translation: str,
     converter: OpenCC,
+    resolver: CharacterNameResolver | None = None,
     diagnostics: dict[str, Any] | None = None,
 ) -> list[str]:
     """将一条记录中的角色事件与翻译文本按顺序尽量对齐。"""
@@ -415,7 +455,11 @@ def align_dialogue(
         )
 
     if len(speakers) == 1:
-        return format_speaker(speakers[0], simplify("\n".join(segments), converter))
+        return format_speaker(
+            speakers[0],
+            simplify("\n".join(segments), converter),
+            resolver=resolver,
+        )
 
     if len(segments) < len(speakers):
         speakers = speakers[-len(segments):]
@@ -426,7 +470,13 @@ def align_dialogue(
 
     output: list[str] = []
     for speaker, segment in zip(speakers, segments):
-        output.extend(format_speaker(speaker, simplify(segment, converter)))
+        output.extend(
+            format_speaker(
+                speaker,
+                simplify(segment, converter),
+                resolver=resolver,
+            )
+        )
     return output
 
 
@@ -487,9 +537,23 @@ def convert_rows(
             line.lower().startswith(("#title;", "#nextepisode;", "#continued"))
             for line in script_lines
         )))
+        branch_dialogue_output = False
 
         if choice_entries:
-            # 新的选项集合开始，不能沿用上一个同编号分支的状态。
+            # 新的选项集合开始时，先结束上一组尚未遇到公共剧情的选项，
+            # 避免连续的两组选项被错误合并到同一个 <选择> 块。
+            if pending_choices:
+                for choice_id in pending_order:
+                    if choice_id in pending_choices:
+                        choice_block_open = append_choice_item(
+                            output,
+                            choice_id,
+                            pending_choices[choice_id],
+                            choice_block_open,
+                        )
+                pending_choices.clear()
+                pending_order.clear()
+                choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
             if diagnostics is not None:
                 diagnostics["choice_rows"] = diagnostics.get("choice_rows", 0) + len(choice_entries)
@@ -542,16 +606,31 @@ def convert_rows(
                     output.append("")
             active_branch = None
 
-        # 当前记录是某个选项的实际反应时，将选项和反应合并到同一个选择块中。
+        # 当前记录是某个选项的实际反应时，按选项声明顺序补齐此前的选项，
+        # 再将当前反应挂到对应选项下，避免源数据中的 ns 分支抢到前面。
         if selection_group != "0" and selection_group in pending_choices and has_branch_content:
-            choice_text = pending_choices.pop(selection_group)
-            pending_order[:] = [choice_id for choice_id in pending_order if choice_id != selection_group]
-            choice_block_open = append_choice_item(
-                output,
-                selection_group,
-                choice_text,
-                choice_block_open,
-            )
+            choice_index = pending_order.index(selection_group)
+            choices_to_render = pending_order[: choice_index + 1]
+            for choice_id in choices_to_render:
+                choice_text = pending_choices.pop(choice_id)
+                pending_order.remove(choice_id)
+                choice_block_open = append_choice_item(
+                    output,
+                    choice_id,
+                    choice_text,
+                    choice_block_open,
+                )
+                if choice_id == selection_group:
+                    output.extend(
+                        align_dialogue(
+                            events,
+                            translation,
+                            converter,
+                            resolver=resolver,
+                            diagnostics=diagnostics,
+                        )
+                    )
+                    branch_dialogue_output = True
             active_branch = selection_group
         elif selection_group != "0" and has_branch_content and active_branch != selection_group:
             # 同一分支可能包含多条连续对白；只有切换到另一分支时重新标记。
@@ -580,15 +659,34 @@ def convert_rows(
 
             if lower_line.startswith(("#st;", "#stm;", "#place;")):
                 if translation:
-                    output.extend(format_speaker("旁白", simplify(translation, converter)))
+                    output.extend(
+                        format_speaker(
+                            "旁白",
+                            simplify(translation, converter),
+                            resolver=resolver,
+                        )
+                    )
                 continue
 
         has_non_scene_events = events and not has_scene_text
-        if has_non_scene_events and translation and not any(
-            line.lower().startswith(("#title;", "#nextepisode;"))
-            for line in script_lines
+        if (
+            has_non_scene_events
+            and translation
+            and not branch_dialogue_output
+            and not any(
+                line.lower().startswith(("#title;", "#nextepisode;"))
+                for line in script_lines
+            )
         ):
-            output.extend(align_dialogue(events, translation, converter, diagnostics))
+            output.extend(
+                align_dialogue(
+                    events,
+                    translation,
+                    converter,
+                    resolver=resolver,
+                    diagnostics=diagnostics,
+                )
+            )
         elif events and has_scene_text and diagnostics is not None:
             # 同一记录混有场景指令和角色事件时，TextTw 通常只对应场景文字；
             # 不能把同一段翻译错误复制给角色，记录下来供后续人工对齐。

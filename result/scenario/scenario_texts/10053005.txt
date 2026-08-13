@@ -9,17 +9,17 @@ GroupId: 10053005
 木乃香: 完……
 木乃香: 完蛋了，我的人生。
 旁白: @konoka0819
-旁白: [log=@konoka0819]＼(^o^)／[/log]
+@konoka0819: ＼(^o^)／
 旁白: @konoka0819
 旁白: ＼(^o^)／
 旁白: @konoka0819
-旁白: [log=@konoka0819]人生结束了[/log]
+@konoka0819: 人生结束了
 旁白: @konoka0819
 旁白: ＼(^o^)／
 旁白: @konoka0819
 旁白: 人生结束了
 旁白: @konoka0819
-旁白: [log=@konoka0819]再会了，我的青春[/log]
+@konoka0819: 再会了，我的青春
 旁白: @konoka0819
 旁白: ＼(^o^)／
 旁白: @konoka0819
@@ -27,7 +27,7 @@ GroupId: 10053005
 旁白: @konoka0819
 旁白: 再会了，我的青春
 旁白: @mo_channel
-旁白: [log=@mo_channel]konoka君，发生什么事了吗？[/log]
+@mo_channel: konoka君，发生什么事了吗？
 旁白: @konoka0819
 旁白: ＼(^o^)／
 旁白: @konoka0819
@@ -37,7 +37,7 @@ GroupId: 10053005
 旁白: @mo_channel
 旁白: konoka君，发生什么事了吗？
 旁白: @neko_me_me
-旁白: [log=@neko_me_me]又是那个占卜吧[/log]
+@neko_me_me: 又是那个占卜吧
 旁白: @konoka0819
 旁白: 人生结束了
 旁白: @konoka0819
@@ -47,7 +47,7 @@ GroupId: 10053005
 旁白: @neko_me_me
 旁白: 又是那个占卜吧
 旁白: @anemone
-旁白: [log=@anemone]今天确实有点严重呢w[/log]
+@anemone: 今天确实有点严重呢w
 旁白: @konoka0819
 旁白: 再会了，我的青春
 旁白: @mo_channel
@@ -57,7 +57,7 @@ GroupId: 10053005
 旁白: @anemone
 旁白: 今天确实有点严重呢w
 旁白: @gurumin_official
-旁白: [log=@gurumin_official]我刚才也跑去看了一下……那种老是说坏话的运势节目，到底为什么会有需求啊？[/log]
+@gurumin_official: 我刚才也跑去看了一下……那种老是说坏话的运势节目，到底为什么会有需求啊？
 旁白: @mo_channel
 旁白: konoka君，发生什么事了吗？
 旁白: @neko_me_me
@@ -67,7 +67,7 @@ GroupId: 10053005
 旁白: @gurumin_official
 旁白: 我刚才也跑去看了一下……那种老是说坏话的运势节目，到底为什么会有需求啊？
 旁白: @anemone
-旁白: [log=@anemone]我虽然也每天都会看，不过那种评语之前从来没见过呢[/log]
+@anemone: 我虽然也每天都会看，不过那种评语之前从来没见过呢
 旁白: @neko_me_me
 旁白: 又是那个占卜吧
 旁白: @anemone
@@ -77,7 +77,7 @@ GroupId: 10053005
 旁白: @anemone
 旁白: 我虽然也每天都会看，不过那种评语之前从来没见过呢
 旁白: @anemone
-旁白: [log=@anemone]真的是史上第一次吧[/log]
+@anemone: 真的是史上第一次吧
 旁白: @anemone
 旁白: 今天确实有点严重呢w
 旁白: @gurumin_official
@@ -87,7 +87,7 @@ GroupId: 10053005
 旁白: @anemone
 旁白: 真的是史上第一次吧
 旁白: @mo_channel
-旁白: [log=@mo_channel]说真的，那样不是很危险吗？[/log]
+@mo_channel: 说真的，那样不是很危险吗？
 旁白: @gurumin_official
 旁白: 我刚才也跑去看了一下……那种老是说坏话的运势节目，到底为什么会有需求啊？
 旁白: @anemone
@@ -97,7 +97,7 @@ GroupId: 10053005
 旁白: @mo_channel
 旁白: 说真的，那样不是很危险吗？
 旁白: @mo_channel
-旁白: [log=@mo_channel]应该要做出一些对策……[/log]
+@mo_channel: 应该要做出一些对策……
 旁白: @anemone
 旁白: 我虽然也每天都会看，不过那种评语之前从来没见过呢
 旁白: @anemone
@@ -107,7 +107,7 @@ GroupId: 10053005
 旁白: @mo_channel
 旁白: 应该要做出一些对策……
 旁白: @anonymous
-旁白: [log=@anonymous]抱歉突然插入你们的谈话，因为内容实在太有趣了……[/log]
+@anonymous: 抱歉突然插入你们的谈话，因为内容实在太有趣了……
 旁白: @anemone
 旁白: 真的是史上第一次吧
 旁白: @mo_channel
@@ -117,7 +117,7 @@ GroupId: 10053005
 旁白: @anonymous
 旁白: 抱歉突然插入你们的谈话，因为内容实在太有趣了……
 旁白: @anonymous
-旁白: [log=@anonymous]其实我这边正好有一段适合的「文本」[/log]
+@anonymous: 其实我这边正好有一段适合的「文本」
 旁白: @mo_channel
 旁白: 说真的，那样不是很危险吗？
 旁白: @mo_channel
@@ -127,7 +127,7 @@ GroupId: 10053005
 旁白: @anonymous
 旁白: 其实我这边正好有一段适合的「文本」
 旁白: @anonymous
-旁白: [log=@anonymous]很久以前，有一种被视为幸运象征的神秘生物[/log]
+@anonymous: 很久以前，有一种被视为幸运象征的神秘生物
 旁白: @mo_channel
 旁白: 应该要做出一些对策……
 旁白: @anonymous
@@ -137,7 +137,7 @@ GroupId: 10053005
 旁白: @anonymous
 旁白: 很久以前，有一种被视为幸运象征的神秘生物
 旁白: @anonymous
-旁白: [log=@anonymous]虽然长久以来都被认为现实中并不存在……[/log]
+@anonymous: 虽然长久以来都被认为现实中并不存在……
 旁白: @anonymous
 旁白: 抱歉突然插入你们的谈话，因为内容实在太有趣了……
 旁白: @anonymous
@@ -147,11 +147,11 @@ GroupId: 10053005
 旁白: @anonymous
 旁白: 虽然长久以来都被认为现实中并不存在……
 旁白: @anonymous
-旁白: [log=@anonymous]然而最近牠的目击情报，却莫名在某个地区频繁出现[/log]
+@anonymous: 然而最近牠的目击情报，却莫名在某个地区频繁出现
 木乃香: 幸运的……象征……？
 播报员: 但是不用担心！
 播报员: 只要有这只幸运动物在身边，就能免于不幸！
 播报员: 那只幸运动物就是～～～！
 旁白: @anonymous
-旁白: [log=@anonymous]你们听过「槌之子」吗？[/log]
+@anonymous: 你们听过「槌之子」吗？
 播报员: 蛇！！！！
