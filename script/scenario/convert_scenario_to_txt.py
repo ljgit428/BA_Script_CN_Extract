@@ -495,6 +495,7 @@ def convert_rows(
     pending_order: list[str] = []
     active_branch: str | None = None
     choice_block_open = False
+    last_branch_signature: tuple[str, ...] | None = None
 
     if rows and rows[0].get("GroupId") is not None:
         output.extend([f"GroupId: {rows[0]['GroupId']}", ""])
@@ -554,7 +555,11 @@ def convert_rows(
                 pending_choices.clear()
                 pending_order.clear()
                 choice_block_open = close_choice_block(output, choice_block_open)
+            # 即使上一组的所有分支反馈都已输出，新的选项记录仍应
+            # 开启独立的选择块，而不是接续到上一个已完成的块。
+            choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
+            last_branch_signature = None
             if diagnostics is not None:
                 diagnostics["choice_rows"] = diagnostics.get("choice_rows", 0) + len(choice_entries)
             for tag, choice_text in choice_entries:
@@ -586,6 +591,7 @@ def convert_rows(
             pending_order.clear()
             choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
+            last_branch_signature = None
 
         # 只有回到 SelectionGroup=0 的普通角色对白，才结束当前选择块。
         # 标题、#st 旁白和其他演出记录不能触发选择块的间隔。
@@ -605,6 +611,7 @@ def convert_rows(
                 if output and output[-1] != "":
                     output.append("")
             active_branch = None
+            last_branch_signature = None
 
         # 当前记录是某个选项的实际反应时，按选项声明顺序补齐此前的选项，
         # 再将当前反应挂到对应选项下，避免源数据中的 ns 分支抢到前面。
@@ -621,18 +628,28 @@ def convert_rows(
                     choice_block_open,
                 )
                 if choice_id == selection_group:
-                    output.extend(
-                        align_dialogue(
-                            events,
-                            translation,
-                            converter,
-                            resolver=resolver,
-                            diagnostics=diagnostics,
-                        )
+                    branch_lines = align_dialogue(
+                        events,
+                        translation,
+                        converter,
+                        resolver=resolver,
+                        diagnostics=diagnostics,
                     )
+                    branch_signature = tuple(branch_lines)
+                    # 连续选项拥有相同反馈时视为同一组；反馈变化表示
+                    # 新的独立选择集合，关闭当前块并重新编号块内选项。
+                    if (
+                        choice_block_open
+                        and last_branch_signature is not None
+                        and branch_signature != last_branch_signature
+                    ):
+                        choice_block_open = close_choice_block(output, choice_block_open)
+                    output.extend(branch_lines)
+                    last_branch_signature = branch_signature
                     branch_dialogue_output = True
             active_branch = selection_group
         elif selection_group != "0" and has_branch_content and active_branch != selection_group:
+
             # 同一分支可能包含多条连续对白；只有切换到另一分支时重新标记。
             if output and output[-1] != "":
                 output.append("")

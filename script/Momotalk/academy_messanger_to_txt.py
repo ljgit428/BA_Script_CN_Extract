@@ -1044,7 +1044,6 @@ def compressed_group_lines(
     merged_destinations: set[str],
     branch_destinations: dict[str, list[str]],
     incoming_sources: dict[str, list[str]],
-    branch_option_labels: list[str] | None = None,
     previous_kind: str | None = None,
 ) -> tuple[list[str], int, int, int, str | None]:
     """Render a group with semantic headings and no database metadata."""
@@ -1055,7 +1054,6 @@ def compressed_group_lines(
     fallback_count = 0
 
     if group_id in merged_destinations:
-        lines.append("[共同后续]")
         current_kind = "feedback"
     elif group_id in branch_destinations:
         labels = "、".join(branch_destinations[group_id])
@@ -1070,34 +1068,49 @@ def compressed_group_lines(
             # Chapter markers are the only top-level marker for ordinary
             # dialogue; avoid repeating [普通通讯] inside each chapter.
             "ordinary": "",
-            "answer": "[老师选项]",
+            "answer": "",
             "feedback": "[选项后的角色反馈]" if incoming_sources.get(group_id) else "[角色反馈]",
         }
         if labels[kind]:
             lines.append(labels[kind])
         current_kind = kind
 
-    answer_number = 0
+    answer_rows = [
+        row
+        for row in messages
+        if str(row.get("MessageCondition") or "") == "Answer"
+    ]
+    rendered_answers = False
     for row in messages:
         condition = str(row.get("MessageCondition") or "")
-        answer_label = ""
         if condition == "Answer":
-            kind = "answer"
-            answer_label = (
-                branch_option_labels[answer_number]
-                if branch_option_labels and answer_number < len(branch_option_labels)
-                else ""
-            )
-            answer_number += 1
-        elif condition == "Feedback":
-            kind = "feedback"
-        else:
-            kind = "ordinary"
+            # Keep every choice in one block, matching the Scenario and bond
+            # story TXT format. Feedback remains outside the block because a
+            # shared destination does not prove which choice caused it.
+            if rendered_answers:
+                continue
+            rendered_answers = True
+            lines.append("<选择>")
+            for answer_number, answer_row in enumerate(answer_rows, 1):
+                speaker, text, used_fallback = compressed_row_text(
+                    answer_row, resolver, converter
+                )
+                parts = text.splitlines() or [text]
+                if used_fallback:
+                    lines.append("[语言回退]")
+                lines.append(f"{answer_number}. {speaker}: {parts[0]}")
+                lines.extend(f"{speaker}: {part}" for part in parts[1:])
+                dialogue_count += 1
+                if str(answer_row.get("MessageType") or "Text").lower() == "image":
+                    image_count += 1
+                if used_fallback:
+                    fallback_count += 1
+            lines.append("</选择>")
+            current_kind = "answer"
+            continue
+
+        kind = "feedback" if condition == "Feedback" else "ordinary"
         heading(kind)
-        if condition == "Answer" and answer_number == 1 and branch_option_labels:
-            lines.append("[分支]")
-        if answer_label:
-            lines.append(f"[{answer_label}]")
         speaker, text, used_fallback = compressed_row_text(row, resolver, converter)
         if used_fallback:
             lines.append("[语言回退]")
@@ -1152,7 +1165,7 @@ def convert_compressed_character_stories(
             merged_destinations,
             branch_destinations,
             incoming_sources,
-            branch_option_labels,
+            _branch_option_labels,
         ) = compressed_branch_destinations(groups)
         lines = [f"{resolved_name}——Academy Messenger 通讯", ""]
         seen_schedule_ids: set[str] = set()
@@ -1174,7 +1187,7 @@ def convert_compressed_character_stories(
             # still create chapter 1 at the beginning of the file.
             if chapter_count == 0 or group_is_favor_rank_up(messages):
                 chapter_count += 1
-                lines.append(f"[章节{chapter_count}]")
+                lines.append(f"=== 章节{chapter_count} ===")
                 lines.append("")
                 previous_kind = None
 
@@ -1187,7 +1200,7 @@ def convert_compressed_character_stories(
             ):
                 bond_count += 1
                 seen_schedule_ids.add(pre_schedule_id)
-                lines.append(f"[进行羁绊剧情{bond_count}]")
+                lines.append(f"=== 进行羁绊剧情{bond_count} ===")
                 lines.append("")
                 previous_kind = None
 
@@ -1199,7 +1212,6 @@ def convert_compressed_character_stories(
                 merged_destinations,
                 branch_destinations,
                 incoming_sources,
-                branch_option_labels.get(group_id),
                 previous_kind,
             )
             lines.extend(section)
@@ -1215,7 +1227,7 @@ def convert_compressed_character_stories(
                 bond_count += 1
                 seen_schedule_ids.add(schedule_id)
                 previous_kind = None
-                lines.append(f"[进行羁绊剧情{bond_count}]")
+                lines.append(f"=== 进行羁绊剧情{bond_count} ===")
                 lines.append("")
 
         destination = output_dir / f"{safe_filename(resolved_name)}_{safe_filename(character_id)}.txt"
