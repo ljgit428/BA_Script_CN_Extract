@@ -1069,7 +1069,7 @@ def compressed_group_lines(
             # dialogue; avoid repeating [普通通讯] inside each chapter.
             "ordinary": "",
             "answer": "",
-            "feedback": "[选项后的角色反馈]" if incoming_sources.get(group_id) else "[角色反馈]",
+            "feedback": "" if incoming_sources.get(group_id) else "[角色反馈]",
         }
         if labels[kind]:
             lines.append(labels[kind])
@@ -1090,22 +1090,38 @@ def compressed_group_lines(
             if rendered_answers:
                 continue
             rendered_answers = True
-            lines.append("<选择>")
-            for answer_number, answer_row in enumerate(answer_rows, 1):
+            if len(answer_rows) == 1:
+                # A single teacher response is ordinary dialogue, not a
+                # meaningful choice block.
+                answer_row = answer_rows[0]
                 speaker, text, used_fallback = compressed_row_text(
                     answer_row, resolver, converter
                 )
-                parts = text.splitlines() or [text]
                 if used_fallback:
                     lines.append("[语言回退]")
-                lines.append(f"{answer_number}. {speaker}: {parts[0]}")
-                lines.extend(f"{speaker}: {part}" for part in parts[1:])
+                append_compressed_dialogue(lines, speaker, text)
                 dialogue_count += 1
                 if str(answer_row.get("MessageType") or "Text").lower() == "image":
                     image_count += 1
                 if used_fallback:
                     fallback_count += 1
-            lines.append("</选择>")
+            else:
+                lines.append("<选择>")
+                for answer_number, answer_row in enumerate(answer_rows, 1):
+                    speaker, text, used_fallback = compressed_row_text(
+                        answer_row, resolver, converter
+                    )
+                    parts = text.splitlines() or [text]
+                    if used_fallback:
+                        lines.append("[语言回退]")
+                    lines.append(f"{answer_number}. {speaker}: {parts[0]}")
+                    lines.extend(f"{speaker}: {part}" for part in parts[1:])
+                    dialogue_count += 1
+                    if str(answer_row.get("MessageType") or "Text").lower() == "image":
+                        image_count += 1
+                    if used_fallback:
+                        fallback_count += 1
+                lines.append("</选择>")
             current_kind = "answer"
             continue
 
@@ -1200,7 +1216,9 @@ def convert_compressed_character_stories(
             ):
                 bond_count += 1
                 seen_schedule_ids.add(pre_schedule_id)
-                lines.append(f"=== 进行羁绊剧情{bond_count} ===")
+                lines.append(
+                    f"【此处触发羁绊剧情{bond_count}，正文见《{resolved_name}_羁绊剧情》】"
+                )
                 lines.append("")
                 previous_kind = None
 
@@ -1227,7 +1245,9 @@ def convert_compressed_character_stories(
                 bond_count += 1
                 seen_schedule_ids.add(schedule_id)
                 previous_kind = None
-                lines.append(f"=== 进行羁绊剧情{bond_count} ===")
+                lines.append(
+                    f"【此处触发羁绊剧情{bond_count}，正文见《{resolved_name}_羁绊剧情》】"
+                )
                 lines.append("")
 
         destination = output_dir / f"{safe_filename(resolved_name)}_{safe_filename(character_id)}.txt"
