@@ -1036,7 +1036,46 @@ def compressed_branch_destinations(
 
 
 
+def explicit_branch_feedbacks(
+    groups: dict[str, list[dict[str, Any]]],
+) -> tuple[dict[str, list[list[dict[str, Any]]]], set[str]]:
+    """Return explicit one-to-one answer feedback and consumed destination groups."""
+    feedback_by_source: dict[str, list[list[dict[str, Any]]]] = {}
+    consumed_groups: set[str] = set()
+    for source_id, messages in groups.items():
+        answers = [
+            row
+            for row in messages
+            if str(row.get("MessageCondition") or "") == "Answer"
+        ]
+        targets = [nonzero_id(row.get("NextGroupId")) for row in answers]
+        if (
+            len(answers) < 2
+            or any(target is None or target not in groups for target in targets)
+            or len(set(targets)) != len(targets)
+        ):
+            continue
+
+        branch_rows: list[list[dict[str, Any]]] = []
+        valid = True
+        for target in targets:
+            target_messages = groups[target]
+            if not target_messages or any(
+                str(row.get("MessageCondition") or "") != "Feedback"
+                for row in target_messages
+            ):
+                valid = False
+                break
+            branch_rows.append(target_messages)
+        if valid:
+            feedback_by_source[source_id] = branch_rows
+            consumed_groups.update(targets)
+    return feedback_by_source, consumed_groups
+
+
+
 def compressed_group_lines(
+
     group_id: str,
     messages: list[dict[str, Any]],
     resolver: CharacterResolver,
@@ -1044,6 +1083,7 @@ def compressed_group_lines(
     merged_destinations: set[str],
     branch_destinations: dict[str, list[str]],
     incoming_sources: dict[str, list[str]],
+    explicit_feedback: list[list[dict[str, Any]]] | None = None,
     previous_kind: str | None = None,
 ) -> tuple[list[str], int, int, int, str | None]:
     """Render a group with semantic headings and no database metadata."""
@@ -1069,7 +1109,7 @@ def compressed_group_lines(
             # dialogue; avoid repeating [普通通讯] inside each chapter.
             "ordinary": "",
             "answer": "",
-            "feedback": "" if incoming_sources.get(group_id) else "[角色反馈]",
+            "feedback": "",
         }
         if labels[kind]:
             lines.append(labels[kind])
@@ -1085,8 +1125,8 @@ def compressed_group_lines(
         condition = str(row.get("MessageCondition") or "")
         if condition == "Answer":
             # Keep every choice in one block, matching the Scenario and bond
-            # story TXT format. Feedback remains outside the block because a
-            # shared destination does not prove which choice caused it.
+            # story TXT format. Explicit one-to-one feedback is rendered under
+            # its answer; ambiguous shared feedback remains after the block.
             if rendered_answers:
                 continue
             rendered_answers = True
@@ -1108,6 +1148,8 @@ def compressed_group_lines(
             else:
                 lines.append("<选择>")
                 for answer_number, answer_row in enumerate(answer_rows, 1):
+                    if answer_number > 1:
+                        lines.append("")
                     speaker, text, used_fallback = compressed_row_text(
                         answer_row, resolver, converter
                     )
@@ -1121,6 +1163,22 @@ def compressed_group_lines(
                         image_count += 1
                     if used_fallback:
                         fallback_count += 1
+
+                    if explicit_feedback and answer_number <= len(explicit_feedback):
+                        for feedback_row in explicit_feedback[answer_number - 1]:
+                            feedback_speaker, feedback_text, feedback_fallback = compressed_row_text(
+                                feedback_row, resolver, converter
+                            )
+                            if feedback_fallback:
+                                lines.append("[语言回退]")
+                            append_compressed_dialogue(
+                                lines, feedback_speaker, feedback_text
+                            )
+                            dialogue_count += 1
+                            if str(feedback_row.get("MessageType") or "Text").lower() == "image":
+                                image_count += 1
+                            if feedback_fallback:
+                                fallback_count += 1
                 lines.append("</选择>")
             current_kind = "answer"
             continue
@@ -1183,6 +1241,7 @@ def convert_compressed_character_stories(
             incoming_sources,
             _branch_option_labels,
         ) = compressed_branch_destinations(groups)
+        explicit_feedback_by_source, consumed_branch_groups = explicit_branch_feedbacks(groups)
         lines = [f"{resolved_name}——Academy Messenger 通讯", ""]
         seen_schedule_ids: set[str] = set()
         chapter_count = 0
@@ -1193,6 +1252,8 @@ def convert_compressed_character_stories(
         previous_kind: str | None = None
 
         for group_id in group_order:
+            if group_id in consumed_branch_groups:
+                continue
             messages = groups[group_id]
             schedule_id = nonzero_schedule_id(messages, "FavorScheduleId")
             pre_schedule_id = nonzero_schedule_id(messages, "PreConditionFavorScheduleId")
@@ -1230,6 +1291,7 @@ def convert_compressed_character_stories(
                 merged_destinations,
                 branch_destinations,
                 incoming_sources,
+                explicit_feedback_by_source.get(group_id),
                 previous_kind,
             )
             lines.extend(section)
