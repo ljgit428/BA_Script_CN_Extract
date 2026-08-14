@@ -403,6 +403,7 @@ def convert_group(
             stats["image_records"] += 1
             image_path = str(row.get("ImagePath") or "").strip()
             lines.append(f"{character}: [图片]{(' ' + image_path) if image_path else ''}")
+            lines.append("")
             continue
 
         if not message:
@@ -492,7 +493,7 @@ def convert_characters(
         for row in messages:
             group_id = str(row.get("MessageGroupId") or "ungrouped")
             if group_id != previous_group:
-                if previous_group is not None:
+                if previous_group is not None and lines and lines[-1] != "":
                     lines.append("")
                 lines.append(f"=== MessageGroupId: {group_id} ===")
                 previous_group = group_id
@@ -507,6 +508,7 @@ def convert_characters(
                 lines.append(
                     f"{resolved_name}: [图片]{(' ' + image_path) if image_path else ''}"
                 )
+                lines.append("")
                 image_records += 1
                 continue
 
@@ -514,6 +516,7 @@ def convert_characters(
             if not message:
                 empty_records += 1
                 lines.append(f"{resolved_name}: [缺少繁中消息文本]")
+                lines.append("")
                 missing_records.append(
                     {
                         "id": row.get("Id"),
@@ -533,6 +536,7 @@ def convert_characters(
                 for part in message.splitlines()
                 if part.strip()
             )
+            lines.append("")
 
         filename = f"{safe_filename(resolved_name)}_{safe_filename(character_id)}.txt"
         destination = output_dir / filename
@@ -695,6 +699,8 @@ def story_group_text(
             if next_id:
                 unique_next[next_id].append(index)
                 lines.append(f"→ 后续消息组: {next_id}")
+            if lines and lines[-1] != "":
+                lines.append("")
 
         # Do not print a reaction heading here: the actual reaction belongs to
         # the destination group and is rendered there. This group only records
@@ -719,6 +725,8 @@ def story_group_text(
             lines.extend(rendered)
             if not has_text:
                 lines.append("[缺少繁中消息文本]")
+            if lines and lines[-1] != "":
+                lines.append("")
 
     if next_ids:
         non_answer_next = [
@@ -727,7 +735,8 @@ def story_group_text(
         ]
         for next_id in non_answer_next:
             lines.append(f"→ 下一消息组: {next_id}")
-    lines.append("")
+    if not lines or lines[-1] != "":
+        lines.append("")
     return lines, next_ids, len(answers) + len(feedback) + len(ordinary)
 
 
@@ -986,10 +995,11 @@ def compressed_row_text(
 
 
 def append_compressed_dialogue(lines: list[str], speaker: str, text: str) -> None:
-    """Keep explicit line breaks as one message with one speaker prefix."""
-    parts = text.splitlines() or [text]
-    lines.append(f"{speaker}: {parts[0]}")
-    lines.extend(parts[1:])
+    """Prefix every non-empty source line and separate dialogue turns."""
+    parts = [part.strip() for part in text.splitlines() if part.strip()]
+    lines.extend(f"{speaker}: {part}" for part in parts or [text.strip()])
+    if not lines or lines[-1] != "":
+        lines.append("")
 
 
 
@@ -1180,6 +1190,8 @@ def compressed_group_lines(
                             if feedback_fallback:
                                 fallback_count += 1
                 lines.append("</选择>")
+                if not lines or lines[-1] != "":
+                    lines.append("")
             current_kind = "answer"
             continue
 
@@ -1295,6 +1307,8 @@ def convert_compressed_character_stories(
                 previous_kind,
             )
             lines.extend(section)
+            if not lines or lines[-1] != "":
+                lines.append("")
             dialogue_count += section_dialogues
             image_count += section_images
             fallback_count += section_fallbacks

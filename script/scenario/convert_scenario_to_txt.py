@@ -365,6 +365,15 @@ def format_speaker(
     return output
 
 
+def append_dialogue_lines(output: list[str], rendered: list[str]) -> None:
+    """Append one dialogue turn and leave one blank line after it."""
+    if not rendered:
+        return
+    output.extend(rendered)
+    if output[-1] != "":
+        output.append("")
+
+
 def append_choice_item(
     output: list[str],
     choice_id: str,
@@ -455,11 +464,12 @@ def align_dialogue(
         )
 
     if len(speakers) == 1:
-        return format_speaker(
+        rendered = format_speaker(
             speakers[0],
             simplify("\n".join(segments), converter),
             resolver=resolver,
         )
+        return rendered + ([""] if rendered else [])
 
     if len(segments) < len(speakers):
         speakers = speakers[-len(segments):]
@@ -470,12 +480,13 @@ def align_dialogue(
 
     output: list[str] = []
     for speaker, segment in zip(speakers, segments):
-        output.extend(
+        append_dialogue_lines(
+            output,
             format_speaker(
                 speaker,
                 simplify(segment, converter),
                 resolver=resolver,
-            )
+            ),
         )
     return output
 
@@ -569,7 +580,9 @@ def convert_rows(
                         pending_order.append(choice_id)
                     pending_choices[choice_id] = simplify(choice_text, converter)
                 elif choice_text:
-                    output.extend(format_speaker("老师", simplify(choice_text, converter)))
+                    append_dialogue_lines(
+                        output, format_speaker("老师", simplify(choice_text, converter))
+                    )
             continue
 
         # 没有实际对白的等待/演出记录不能消耗分支选项；后面还可能有真正的反应。
@@ -644,7 +657,7 @@ def convert_rows(
                         and branch_signature != last_branch_signature
                     ):
                         choice_block_open = close_choice_block(output, choice_block_open)
-                    output.extend(branch_lines)
+                    append_dialogue_lines(output, branch_lines)
                     last_branch_signature = branch_signature
                     branch_dialogue_output = True
             active_branch = selection_group
@@ -676,12 +689,13 @@ def convert_rows(
 
             if lower_line.startswith(("#st;", "#stm;", "#place;")):
                 if translation:
-                    output.extend(
+                    append_dialogue_lines(
+                        output,
                         format_speaker(
                             "旁白",
                             simplify(translation, converter),
                             resolver=resolver,
-                        )
+                        ),
                     )
                 continue
 
@@ -695,14 +709,15 @@ def convert_rows(
                 for line in script_lines
             )
         ):
-            output.extend(
+            append_dialogue_lines(
+                output,
                 align_dialogue(
                     events,
                     translation,
                     converter,
                     resolver=resolver,
                     diagnostics=diagnostics,
-                )
+                ),
             )
         elif events and has_scene_text and diagnostics is not None:
             # 同一记录混有场景指令和角色事件时，TextTw 通常只对应场景文字；

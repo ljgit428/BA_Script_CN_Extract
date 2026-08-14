@@ -86,14 +86,29 @@ def schedule_sort_key(row: dict[str, Any]) -> tuple[int, int, int, int, str]:
     )
 
 
+def normalize_story_spacing(text: str) -> str:
+    """Keep one blank line between dialogue turns and remove trailing blanks."""
+    normalized: list[str] = []
+    for raw_line in text.splitlines():
+        line = raw_line.rstrip()
+        if not line.strip():
+            if normalized and normalized[-1] != "":
+                normalized.append("")
+            continue
+        normalized.append(line)
+    while normalized and normalized[-1] == "":
+        normalized.pop()
+    return "\n".join(normalized)
+
+
 def without_group_header(text: str) -> str:
-    """Remove the converter's technical GroupId header from the public output."""
+    """Remove technical headers and normalize public bond-story spacing."""
     lines = text.splitlines()
     if lines and lines[0].startswith("GroupId:"):
         lines = lines[1:]
         if lines and not lines[0].strip():
             lines = lines[1:]
-    return "\n".join(lines).strip()
+    return normalize_story_spacing("\n".join(lines))
 
 
 def extract_scene_locations(
