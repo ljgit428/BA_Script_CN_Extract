@@ -37,7 +37,160 @@ RESULT_SCENARIO_DIR = PROJECT_ROOT / "result" / "scenario"
 DB_CHARACTER_NAMES = RAW_DB_DIR / "ScenarioCharacterNameExcelTable.json"
 DEFAULT_INPUT_DIR = RESULT_SCENARIO_DIR / "all_scenarios"
 DEFAULT_OUTPUT_DIR = RESULT_SCENARIO_DIR / "scenario_texts"
+DEFAULT_REACTION_OUTPUT_DIR = RESULT_SCENARIO_DIR / "scenario_texts_with_reactions"
 DEFAULT_REPORT_DIR = RESULT_SCENARIO_DIR / "scenario_text_reports"
+DEFAULT_REACTION_REPORT_DIR = RESULT_SCENARIO_DIR / "scenario_text_reaction_reports"
+
+REACTION_EMOTION_MAP = {
+    "[땀]": "冒汗",
+    "[!]": "露出惊讶的表情",
+    "[?]": "露出疑惑的表情",
+    "[?!]": "露出惊讶又困惑的表情",
+    "[반응]": "做出反应",
+    "[반짝]": "眼神闪亮",
+    "[음표]": "语气轻快，显得心情很好",
+    "[재잘]": "叽叽喳喳",
+    "[빠직]": "额头冒出青筋",
+    "[하트]": "冒出爱心",
+    "[세로선]": "头上浮现黑线",
+    "[스팀]": "气得冒蒸汽",
+    "[훌쩍]": "抽泣",
+    "[zzz]": "困得快睡着",
+    "[딴생각]": "开始走神",
+    "[한숨]": "叹气",
+    "[속상함]": "显得郁闷",
+    "[전구]": "灵光一现",
+    "[///]": "脸红",
+    "[…]": "陷入沉默",
+    "[...]": "陷入沉默",
+    "?!": "露出惊讶又困惑的表情",
+    "?": "露出疑惑的表情",
+    "!": "露出惊讶的表情",
+    "…": "陷入沉默",
+    "...": "陷入沉默",
+}
+
+REACTION_ACTION_MAP = {
+    "stiff": "僵住",
+    "shake": "身体微微发抖",
+    "jump": "吓了一跳",
+    "greeting": "热情地打招呼",
+    "hophop": "兴奋地蹦跳",
+    "falldownl": "摔倒",
+    "falldownr": "摔倒",
+}
+
+TECHNICAL_ACTIONS = {
+    "a", "al", "ar", "d", "dr", "dl", "h", "m1", "m2", "m3", "m4", "m5",
+    "sig", "closeup", "hide", "show", "black", "serial", "greeting",
+}
+
+
+
+def _reaction_role_name(
+    raw_role: str,
+    role_map: dict[str, str],
+    resolver: CharacterNameResolver | None,
+) -> str:
+    if resolver is not None:
+        return resolver.display_name(raw_role)[0]
+    return role_map.get(raw_role.strip(), raw_role.strip())
+
+
+def reaction_emotion_label(value: str, has_dialogue: bool) -> str | None:
+    if value == "[음표]":
+        return "语气轻快，显得心情很好" if has_dialogue else "显得心情愉快"
+    return REACTION_EMOTION_MAP.get(value)
+
+
+def combine_reaction_effects(effects: list[str]) -> list[str]:
+    """Combine common cheerful greeting effects into one natural phrase."""
+    mood_labels = {"语气轻快，显得心情很好", "显得心情愉快"}
+    if "热情地打招呼" not in effects or not mood_labels.intersection(effects):
+        return effects
+    combined = [
+        effect
+        for effect in effects
+        if effect != "热情地打招呼" and effect not in mood_labels
+    ]
+    combined.append("心情愉快地打招呼")
+    return combined
+
+
+def reaction_lines_for_row(
+    script_lines: list[str],
+    role_map: dict[str, str],
+    resolver: CharacterNameResolver | None = None,
+    has_dialogue: bool = False,
+    diagnostics: dict[str, Any] | None = None,
+) -> list[str]:
+    """把可识别的纯表情/动作演出转成独立的自然语言反应行。
+
+    只保留有角色语义的标签；站位、图层、镜头等底层控制指令会被忽略。
+    未识别的情绪标签记录到诊断信息，不擅自猜测含义。
+    """
+    role_names: dict[str, str] = {}
+    role_order: list[str] = []
+    effects: defaultdict[str, list[str]] = defaultdict(list)
+    has_wait = False
+
+    for line in script_lines:
+        role_match = re.match(r"^(\d+);([^;]+);", line)
+        if role_match and role_match.group(1) not in role_names:
+            role_id, raw_role = role_match.group(1), role_match.group(2).strip()
+            role_names[role_id] = _reaction_role_name(raw_role, role_map, resolver)
+            role_order.append(role_id)
+            continue
+
+        wait_match = re.match(r"^#wait;(\d+)$", line, flags=re.I)
+        if wait_match:
+            has_wait = True
+            continue
+
+        action_match = re.match(r"^#(\d+);([^;]+)(?:;(.*))?$", line, flags=re.S)
+        if not action_match:
+            continue
+        role_id, action, value = action_match.groups()
+        action = action.strip().lower()
+        value = (value or "").strip()
+        if role_id not in role_names:
+            continue
+
+        if action == "em":
+            label = reaction_emotion_label(value, has_dialogue)
+            if label:
+                effects[role_id].append(label)
+            elif value and diagnostics is not None:
+                diagnostics.setdefault("unmapped_reaction_tags", Counter())[value] += 1
+        elif action in REACTION_ACTION_MAP:
+            effects[role_id].append(REACTION_ACTION_MAP[action])
+        elif action not in TECHNICAL_ACTIONS and diagnostics is not None:
+            diagnostics.setdefault("unmapped_reaction_actions", Counter())[action] += 1
+
+    output: list[str] = []
+    for role_id in role_order:
+        role_effects = effects.get(role_id, [])
+        if not role_effects:
+            continue
+        role_effects = combine_reaction_effects(role_effects)
+        if (
+            has_wait
+            and not has_dialogue
+            and "僵住" in role_effects
+            and "陷入沉默" not in role_effects
+        ):
+            role_effects.append("沉默片刻")
+        output.append(f"*{role_names[role_id]}{'，'.join(role_effects)}。*")
+    return output
+
+
+def append_reaction_lines(output: list[str], reactions: list[str]) -> None:
+    for reaction in reactions:
+        append_dialogue_lines(output, [reaction])
+
+
+class CharacterNameResolver:
+    """从 ScenarioCharacterName 表解析基础角色名和服装/状态变体。"""
 
 RoleResolver = Callable[[str], tuple[str, str]]
 
@@ -496,6 +649,7 @@ def convert_rows(
     role_map: dict[str, str] | None = None,
     resolver: CharacterNameResolver | None = None,
     diagnostics: dict[str, Any] | None = None,
+    include_reactions: bool = False,
 ) -> str:
     """按源记录顺序转换为 TXT 内容。"""
     role_map = {**DEFAULT_ROLE_MAP, **(role_map or {})}
@@ -549,6 +703,17 @@ def convert_rows(
             line.lower().startswith(("#title;", "#nextepisode;", "#continued"))
             for line in script_lines
         )))
+        reaction_lines = (
+            reaction_lines_for_row(
+                script_lines,
+                role_map,
+                resolver=resolver,
+                has_dialogue=bool(events and translation),
+                diagnostics=diagnostics,
+            )
+            if include_reactions
+            else []
+        )
         branch_dialogue_output = False
 
         if choice_entries:
@@ -583,10 +748,12 @@ def convert_rows(
                     append_dialogue_lines(
                         output, format_speaker("老师", simplify(choice_text, converter))
                     )
+            append_reaction_lines(output, reaction_lines)
             continue
 
         # 没有实际对白的等待/演出记录不能消耗分支选项；后面还可能有真正的反应。
         if pending_choices and selection_group != "0" and not has_branch_content:
+            append_reaction_lines(output, reaction_lines)
             continue
 
         # 只有遇到真正可见的公共剧情时，才输出没有独立反应的选项。
@@ -736,6 +903,8 @@ def convert_rows(
                 }
             )
 
+        append_reaction_lines(output, reaction_lines)
+
     if pending_choices:
         for choice_id in pending_order:
             if choice_id in pending_choices:
@@ -766,11 +935,20 @@ def convert_group(
     output_path: str | Path,
     resolver: CharacterNameResolver | None = None,
     diagnostics: dict[str, Any] | None = None,
+    include_reactions: bool = False,
 ) -> None:
     source = Path(input_path)
     destination = Path(output_path)
     destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(convert_rows(load_rows(source), resolver=resolver, diagnostics=diagnostics), encoding="utf-8")
+    destination.write_text(
+        convert_rows(
+            load_rows(source),
+            resolver=resolver,
+            diagnostics=diagnostics,
+            include_reactions=include_reactions,
+        ),
+        encoding="utf-8",
+    )
 
 
 def jsonable_diagnostics(value: Any) -> Any:
@@ -786,6 +964,7 @@ def batch_convert(
     output_dir: str | Path,
     db_path: str | Path,
     report_dir: str | Path,
+    include_reactions: bool = False,
 ) -> None:
     source_dir = Path(input_dir)
     destination_dir = Path(output_dir)
@@ -809,6 +988,8 @@ def batch_convert(
         "fallback_language_rows": 0,
         "mixed_scene_dialogue_rows": 0,
         "mixed_scene_dialogue_details": [],
+        "unmapped_reaction_tags": Counter(),
+        "unmapped_reaction_actions": Counter(),
         "errors": {},
     }
 
@@ -817,7 +998,13 @@ def batch_convert(
         diagnostics: dict[str, Any] = {}
         destination = destination_dir / f"{source.stem}.txt"
         try:
-            convert_group(source, destination, resolver=resolver, diagnostics=diagnostics)
+            convert_group(
+                source,
+                destination,
+                resolver=resolver,
+                diagnostics=diagnostics,
+                include_reactions=include_reactions,
+            )
             totals["generated_files"] += 1
             if destination.stat().st_size == 0:
                 totals["empty_output_files"] += 1
@@ -831,6 +1018,8 @@ def batch_convert(
                 "mixed_scene_dialogue_rows",
             ):
                 totals[key] += diagnostics.get(key, 0)
+            for key in ("unmapped_reaction_tags", "unmapped_reaction_actions"):
+                totals[key].update(diagnostics.get(key, {}))
             for detail in diagnostics.get("mixed_scene_dialogue_details", []):
                 totals["mixed_scene_dialogue_details"].append(
                     {
@@ -895,13 +1084,18 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--output-dir",
-        default=DEFAULT_OUTPUT_DIR,
-        help="TXT 输出目录，默认是 result/scenario/scenario_texts。",
+        default=None,
+        help="TXT 输出目录；普通模式默认是 result/scenario/scenario_texts，带反应模式默认是 result/scenario/scenario_texts_with_reactions。",
+    )
+    parser.add_argument(
+        "--with-reactions",
+        action="store_true",
+        help="额外保留可识别的角色表情/动作，生成独立的带反应文本集。",
     )
     parser.add_argument(
         "--report-dir",
-        default=DEFAULT_REPORT_DIR,
-        help="诊断报告目录，默认是 result/scenario/scenario_text_reports。",
+        default=None,
+        help="诊断报告目录；普通模式默认是 result/scenario/scenario_text_reports，带反应模式默认是 result/scenario/scenario_text_reaction_reports。",
     )
     parser.add_argument("--db-path", default=DB_CHARACTER_NAMES, help="角色名 DB JSON 路径。")
     return parser.parse_args()
@@ -911,18 +1105,33 @@ def main() -> None:
     args = parse_args()
     converter = OpenCC("t2s")
     resolver = CharacterNameResolver(args.db_path, converter)
+    output_dir = Path(
+        args.output_dir
+        or (DEFAULT_REACTION_OUTPUT_DIR if args.with_reactions else DEFAULT_OUTPUT_DIR)
+    )
+    report_dir = Path(
+        args.report_dir
+        or (DEFAULT_REACTION_REPORT_DIR if args.with_reactions else DEFAULT_REPORT_DIR)
+    )
     if args.all:
-        batch_convert(args.input_dir, args.output_dir, args.db_path, args.report_dir)
+        batch_convert(
+            args.input_dir,
+            output_dir,
+            args.db_path,
+            report_dir,
+            include_reactions=args.with_reactions,
+        )
     else:
         group_id = str(args.group_id)
         diagnostics: dict[str, Any] = {}
         convert_group(
             Path(args.input_dir) / f"{group_id}.json",
-            Path(args.output_dir) / f"{group_id}.txt",
+            output_dir / f"{group_id}.txt",
             resolver=resolver,
             diagnostics=diagnostics,
+            include_reactions=args.with_reactions,
         )
-        print(f"完成：{Path(args.output_dir) / f'{group_id}.txt'}")
+        print(f"完成：{output_dir / f'{group_id}.txt'}")
 
 
 if __name__ == "__main__":

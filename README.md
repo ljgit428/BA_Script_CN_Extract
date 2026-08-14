@@ -48,7 +48,7 @@ raw/ba-data-global/
 
 ## 生成 Momotalk_message
 
-这是本项目最主要的输出。它会从 raw 数据直接生成每个角色/皮肤一个 TXT 文件，保留：
+这是本项目最主要的输出。它会从 raw 数据直接生成每个角色/皮肤一个角色文件夹，并按普通通讯章节输出 TXT 文件，保留：
 
 - 角色和皮肤名称
 - 普通通讯
@@ -63,18 +63,31 @@ raw/ba-data-global/
 python script/Momotalk/academy_messanger_to_txt.py --Momotalk_message
 ```
 
+如果需要每个角色只生成一个不分割的完整 TXT，使用独立输出目录：
+
+```bash
+python script/Momotalk/academy_messanger_to_txt.py --Momotalk_message_combined
+```
+
+输出到 `result/Momotalk/Momotalk_message_combined/`，不会覆盖按章节版本；文件名为 `<角色名>_<CharacterId>_Momotalk.txt`，其中的羁绊参考会对应不分割羁绊目录中的 `<角色名>_<CharacterId>_羁绊剧情.txt`。
+
 输出：
 
 ```text
 result/Momotalk/Momotalk_message/
-├── 阳奈_10004.txt
-├── 阳奈（礼服）_10086.txt
-├── 咲希（泳装）_10072.txt
-├── 系统_0.txt
+├── 阳奈_10004/
+│   ├── 阳奈_Momotalk_1.txt
+│   └── ...
+├── 阳奈（礼服）_10086/
+│   └── 阳奈（礼服）_Momotalk_1.txt
+├── 咲希（泳装）_10072/
+│   └── 咲希（泳装）_Momotalk_1.txt
+├── 系统_0/
+│   └── 系统_Momotalk_1.txt
 └── ...
 ```
 
-当前数据通常生成约 257 个角色/皮肤 TXT；实际数量以 raw 数据为准。
+当前数据通常生成约 257 个角色/皮肤文件夹、1074 个章节 TXT；实际数量以 raw 数据为准。不分割版本则生成约 257 个完整 TXT，文件名带有 `_Momotalk` 后缀。
 
 ## 生成 scenario_texts
 
@@ -98,6 +111,18 @@ result/scenario/all_scenarios/
 python script/scenario/convert_scenario_to_txt.py --all
 ```
 
+需要给 AI 角色数据保留表情/动作反应时，可以生成独立版本，普通文本不会被修改：
+
+```bash
+python script/scenario/convert_scenario_to_txt.py --all --with-reactions
+```
+
+输出到 `result/scenario/scenario_texts_with_reactions/`，诊断报告输出到 `result/scenario/scenario_text_reaction_reports/`。也可以只生成单个剧情：
+
+```bash
+python script/scenario/convert_scenario_to_txt.py --group-id 84312101306 --with-reactions
+```
+
 最终文本写入：
 
 ```text
@@ -114,7 +139,7 @@ result/scenario/scenario_text_reports/
 
 ## 生成 bond_story
 
-羁绊剧情使用 `AcademyFavorScheduleExcelTable.json` 将每个角色的羁绊日程关联到对应的 Scenario `GroupId`，再按羁绊等级顺序汇总为每个角色一个 TXT。每段剧情的“场景地点”从 ScenarioScript 的 `#place` 标记提取，不再把日程固定地点夏莱误当成实际场景。它不会复制生成其他 Momotalk 输出目录。
+羁绊剧情使用 `AcademyFavorScheduleExcelTable.json` 将每个角色的羁绊日程关联到对应的 Scenario `GroupId`，再按羁绊等级顺序拆分为角色文件夹中的章节 TXT。每段剧情的“场景地点”从 ScenarioScript 的 `#place` 标记提取，不再把日程固定地点夏莱误当成实际场景。它不会复制生成其他 Momotalk 输出目录。
 
 执行：
 
@@ -122,13 +147,37 @@ result/scenario/scenario_text_reports/
 python script/bond_story/generate_bond_stories.py
 ```
 
+如果要额外保留羁绊剧情中的表情/动作反应，使用独立输出目录：
+
+```bash
+python script/bond_story/generate_bond_stories.py --with-reactions
+```
+
+如果需要每个角色只生成一个不分割的完整羁绊剧情 TXT，使用：
+
+```bash
+python script/bond_story/generate_bond_stories.py --combined
+```
+
+带反应的不分割版本：
+
+```bash
+python script/bond_story/generate_bond_stories.py --combined --with-reactions
+```
+
+不分割版本分别输出到 `result/bond_story/bond_story_text_combined/` 和 `result/bond_story/bond_story_text_with_reactions_combined/`，文件名带有 `_羁绊剧情` 后缀，不会覆盖章节版本。
+
+输出到 `result/bond_story/bond_story_text_with_reactions/`，报告输出到 `result/bond_story/bond_story_reaction_reports/`；原来的 `bond_story_text/` 不会被修改。
+
 输出：
 
 ```text
 result/bond_story/
 ├── bond_story_text/
-│   ├── 亚瑠_10000.txt
-│   ├── 阳奈_10004.txt
+│   ├── 亚瑠_10000/
+│   │   └── 亚瑠_羁绊剧情_1.txt
+│   ├── 阳奈_10004/
+│   │   └── 阳奈_羁绊剧情_1.txt
 │   └── ...
 └── reports/
 ```
@@ -159,13 +208,13 @@ ScenarioCharacterNameExcelTable.json
 
 ### bond_story_text 的输出结构
 
-每个 `CharacterId` 生成一个独立 TXT，文件名格式为：
+每个 `CharacterId` 生成一个独立角色文件夹，文件夹名格式为 `<角色显示名>_<CharacterId>`；每段羁绊剧情单独生成一个章节文件，文件名格式为：
 
 ```text
-<角色显示名>_<CharacterId>.txt
+<角色显示名>_羁绊剧情_<章节编号>.txt
 ```
 
-TXT 内按 `FavorRank`/原始顺序排列羁绊剧情，并保留：
+例如 `圣亚_10110/圣亚_羁绊剧情_1.txt`。TXT 内按 `FavorRank`/原始顺序排列对应章节，并保留：
 
 - 羁绊等级
 - 实际场景地点（一个剧情可能有多个地点）
@@ -298,11 +347,18 @@ script/
 - `raw/`：本地原始数据，始终忽略
 - `result/scenario/all_scenarios/`：Scenario 中间 JSON，忽略
 - `result/scenario/scenario_texts/`：Scenario 最终 TXT，作为备份提交
-- `result/Momotalk/Momotalk_message/`：Momotalk 最终 TXT，作为备份提交
-- `result/bond_story/bond_story_text/`：羁绊剧情 TXT，作为备份提交
-- `result/bond_story/reports/`：羁绊剧情生成报告，作为备份提交
+- `result/scenario/scenario_texts_with_reactions/`：额外保留表情/动作反应的 Scenario TXT
+- `result/scenario/scenario_text_reaction_reports/`：带反应文本的转换诊断报告
+- `result/Momotalk/Momotalk_message/`：按角色文件夹和章节输出的 Momotalk 最终 TXT，作为备份提交
+- `result/Momotalk/Momotalk_message_combined/`：按角色文件夹输出的不分割 Momotalk 完整 TXT
+- `result/bond_story/bond_story_text/`：按角色文件夹和章节输出的羁绊剧情 TXT，作为备份提交
+- `result/bond_story/bond_story_text_with_reactions/`：额外保留表情/动作反应的羁绊剧情 TXT
+- `result/bond_story/bond_story_text_combined/`：不分割的羁绊剧情 TXT
+- `result/bond_story/bond_story_text_with_reactions_combined/`：不分割且带反应的羁绊剧情 TXT
+- `result/bond_story/reports/`：羁绊剧情生成报告，仅本地使用，不提交
+- `result/bond_story/bond_story_reaction_reports/`：带反应羁绊文本的生成报告
 - `result/free_dialog/free_dialog_text/`：按 GroupId 分段的 Field 自由会话 TXT，作为备份提交
-- `result/free_dialog/reports/`：自由会话生成报告，作为备份提交
+- `result/free_dialog/reports/`：自由会话生成报告，仅本地使用，不提交
 - 其他 `result/` 子目录：忽略
 - `script/`：可提交的转换脚本和文档
 
@@ -321,9 +377,7 @@ script/
 /result/Momotalk/Momotalk_message/
 /result/scenario/scenario_texts/
 /result/bond_story/bond_story_text/
-/result/bond_story/reports/
 /result/free_dialog/free_dialog_text/
-/result/free_dialog/reports/
 ```
 
 首次使用时需要先准备 `raw/ba-data-global/`，再运行生成命令。重新生成后，如果需要更新备份，执行：

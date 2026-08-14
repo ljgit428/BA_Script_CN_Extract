@@ -22,7 +22,13 @@ SCRIPT_DIR = PROJECT_ROOT / "script"
 RAW_DB_DIR = PROJECT_ROOT / "raw" / "ba-data-global" / "DB"
 RESULT_DIR = PROJECT_ROOT / "result" / "bond_story"
 TEXT_OUTPUT_DIR = RESULT_DIR / "bond_story_text"
+REACTION_TEXT_OUTPUT_DIR = RESULT_DIR / "bond_story_text_with_reactions"
+COMBINED_TEXT_OUTPUT_DIR = RESULT_DIR / "bond_story_text_combined"
+COMBINED_REACTION_TEXT_OUTPUT_DIR = RESULT_DIR / "bond_story_text_with_reactions_combined"
 REPORT_DIR = RESULT_DIR / "reports"
+REACTION_REPORT_DIR = RESULT_DIR / "bond_story_reaction_reports"
+COMBINED_REPORT_DIR = RESULT_DIR / "bond_story_combined_reports"
+COMBINED_REACTION_REPORT_DIR = RESULT_DIR / "bond_story_combined_reaction_reports"
 
 SCHEDULE_INPUT = RAW_DB_DIR / "AcademyFavorScheduleExcelTable.json"
 SCRIPT_INPUTS = [
@@ -160,10 +166,16 @@ def clear_owned_outputs(output_dir: Path) -> None:
     except OSError:
         old_files = set()
     for filename in old_files:
-        if Path(filename).name == filename and filename.endswith(".txt"):
-            path = output_dir / filename
-            if path.is_file():
-                path.unlink()
+        relative_path = Path(filename)
+        if (
+            relative_path.is_absolute()
+            or ".." in relative_path.parts
+            or not filename.endswith(".txt")
+        ):
+            continue
+        path = output_dir / relative_path
+        if path.is_file():
+            path.unlink()
 
 
 def generate(
@@ -173,6 +185,8 @@ def generate(
     db_dir: Path = RAW_DB_DIR,
     output_dir: Path = TEXT_OUTPUT_DIR,
     report_dir: Path = REPORT_DIR,
+    include_reactions: bool = False,
+    split_chapters: bool = True,
 ) -> dict[str, Any]:
     converter = OpenCC("t2s")
     schedule_rows = load_rows(schedule_path)
@@ -209,8 +223,11 @@ def generate(
                 if raw_name:
                     display_name, _ = scenario_resolver.display_name(raw_name)
 
-        lines = [f"{display_name}——羁绊剧情", ""]
+        character_directory = output_dir / safe_filename(f"{display_name}_{character_id}")
+        character_directory.mkdir(parents=True, exist_ok=True)
         story_manifest: list[dict[str, Any]] = []
+        chapter_contents: list[str] = []
+        chapter_filenames: list[str] = []
         converted_story_count = 0
 
         for number, schedule in enumerate(schedules, start=1):
@@ -234,47 +251,65 @@ def generate(
             }
             story_manifest.append(story_info)
 
-            lines.append(f"=== 羁绊剧情 {number} ===")
+            chapter_lines = [f"{display_name}——羁绊剧情 {number}", ""]
             favor_rank = schedule.get("FavorRank")
             if favor_rank not in (None, "", 0, "0"):
-                lines.append(f"羁绊等级：{favor_rank}")
+                chapter_lines.append(f"羁绊等级：{favor_rank}")
             if scene_locations:
-                lines.append(f"场景地点：{'、'.join(scene_locations)}")
-            lines.append("")
+                chapter_lines.append(f"场景地点：{'、'.join(scene_locations)}")
+            chapter_lines.append("")
 
             if not group_rows:
-                lines.append("[缺少对应剧情文本]")
-                lines.append("")
+                chapter_lines.append("[缺少对应剧情文本]")
                 missing_groups.append(story_info)
-                continue
-
-            diagnostics: dict[str, Any] = {}
-            converted = without_group_header(
-                convert_rows(
-                    group_rows,
-                    resolver=scenario_resolver,
-                    diagnostics=diagnostics,
-                )
-            )
-            if converted:
-                lines.append(converted)
-                converted_story_count += 1
-                story_info["status"] = "generated"
             else:
-                lines.append("[剧情文本为空]")
-                story_info["status"] = "empty_text"
-                empty_groups.append(story_info)
-            lines.append("")
+                diagnostics: dict[str, Any] = {}
+                converted = without_group_header(
+                    convert_rows(
+                        group_rows,
+                        resolver=scenario_resolver,
+                        diagnostics=diagnostics,
+                        include_reactions=include_reactions,
+                    )
+                )
+                if converted:
+                    chapter_lines.append(converted)
+                    converted_story_count += 1
+                    story_info["status"] = "generated"
+                else:
+                    chapter_lines.append("[剧情文本为空]")
+                    story_info["status"] = "empty_text"
+                    empty_groups.append(story_info)
 
-        filename = f"{safe_filename(display_name)}_{safe_filename(character_id)}.txt"
-        destination = output_dir / filename
-        destination.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-        generated_files.append(filename)
+            filename = f"{safe_filename(display_name)}_羁绊剧情_{number}.txt"
+            chapter_filenames.append(filename)
+            chapter_contents.append("\n".join(chapter_lines).rstrip() + "\n")
+            story_info["chapter_file"] = filename
+            story_info["file"] = filename
+            story_info["directory"] = character_directory.name
+
+        if split_chapters:
+            actual_files = chapter_filenames
+            for filename, content in zip(chapter_filenames, chapter_contents):
+                destination = character_directory / filename
+                destination.write_text(content, encoding="utf-8")
+                generated_files.append(f"{character_directory.name}/{filename}")
+        else:
+            combined_filename = f"{safe_filename(display_name)}_{safe_filename(character_id)}_羁绊剧情.txt"
+            combined_content = "\n\n".join(content.rstrip() for content in chapter_contents).rstrip() + "\n"
+            destination = character_directory / combined_filename
+            destination.write_text(combined_content, encoding="utf-8")
+            generated_files.append(f"{character_directory.name}/{combined_filename}")
+            actual_files = [combined_filename]
+            for story in story_manifest:
+                story["file"] = combined_filename
+
         manifest.append(
             {
                 "character_id": character_id,
                 "display_name": display_name,
-                "file": filename,
+                "directory": character_directory.name,
+                "files": actual_files,
                 "bond_story_count": len(schedules),
                 "converted_story_count": converted_story_count,
                 "stories": story_manifest,
@@ -287,7 +322,8 @@ def generate(
     summary = {
         "schedule_records": len(schedule_rows),
         "character_ids": len(by_character),
-        "generated_files": len(manifest),
+        "generated_files": len(generated_files),
+        "generated_character_directories": len(manifest),
         "converted_bond_stories": sum(item["converted_story_count"] for item in manifest),
         "missing_bond_stories": len(missing_groups),
         "empty_bond_stories": len(empty_groups),
@@ -299,6 +335,7 @@ def generate(
         "scenario_script_groups": len(script_groups),
         "output_dir": str(output_dir),
         "report_dir": str(report_dir),
+        "split_chapters": split_chapters,
     }
     (report_dir / "bond_story_summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
@@ -329,20 +366,60 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--script", type=Path, nargs="+", default=SCRIPT_INPUTS)
     parser.add_argument("--names", type=Path, default=CHARACTER_NAMES_INPUT)
     parser.add_argument("--db-dir", type=Path, default=RAW_DB_DIR)
-    parser.add_argument("--output-dir", type=Path, default=TEXT_OUTPUT_DIR)
-    parser.add_argument("--report-dir", type=Path, default=REPORT_DIR)
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        default=None,
+        help="输出目录；默认按 --with-reactions/--combined 自动选择目录。",
+    )
+    parser.add_argument(
+        "--report-dir",
+        type=Path,
+        default=None,
+        help="报告目录；默认按 --with-reactions/--combined 自动选择目录。",
+    )
+    parser.add_argument(
+        "--with-reactions",
+        action="store_true",
+        help="额外保留可识别的角色表情/动作，生成独立的带反应羁绊剧情集。",
+    )
+    parser.add_argument(
+        "--combined",
+        action="store_true",
+        help="不按章节拆分，每个角色输出一个完整羁绊剧情 TXT。",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
+    output_dir = args.output_dir or (
+        COMBINED_REACTION_TEXT_OUTPUT_DIR
+        if args.with_reactions and args.combined
+        else REACTION_TEXT_OUTPUT_DIR
+        if args.with_reactions
+        else COMBINED_TEXT_OUTPUT_DIR
+        if args.combined
+        else TEXT_OUTPUT_DIR
+    )
+    report_dir = args.report_dir or (
+        COMBINED_REACTION_REPORT_DIR
+        if args.with_reactions and args.combined
+        else REACTION_REPORT_DIR
+        if args.with_reactions
+        else COMBINED_REPORT_DIR
+        if args.combined
+        else REPORT_DIR
+    )
     generate(
         schedule_path=args.schedule,
         script_paths=args.script,
         names_path=args.names,
         db_dir=args.db_dir,
-        output_dir=args.output_dir,
-        report_dir=args.report_dir,
+        output_dir=output_dir,
+        report_dir=report_dir,
+        include_reactions=args.with_reactions,
+        split_chapters=not args.combined,
     )
 
 

@@ -1,0 +1,17 @@
+Kei——Academy Messenger 通讯
+
+=== 章节3 ===
+
+Kei: 老
+
+Kei: 师
+
+Kei: 救
+
+老师: 怎么了！？
+
+Kei: 现在
+
+Kei: 有点困扰
+
+【此处触发羁绊剧情3，参考 Kei_羁绊剧情_3.txt】

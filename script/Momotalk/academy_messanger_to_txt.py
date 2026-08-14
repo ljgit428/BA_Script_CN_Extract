@@ -28,6 +28,7 @@ DEFAULT_CHARACTER_REPORT_DIR = RESULT_MOMOTALK_DIR / "academy_messanger_characte
 DEFAULT_CHARACTER_STORY_OUTPUT_DIR = RESULT_MOMOTALK_DIR / "academy_messanger_character_stories"
 DEFAULT_CHARACTER_STORY_REPORT_DIR = RESULT_MOMOTALK_DIR / "academy_messanger_character_story_reports"
 DEFAULT_COMPRESSED_OUTPUT_DIR = RESULT_MOMOTALK_DIR / "Momotalk_message"
+DEFAULT_COMBINED_COMPRESSED_OUTPUT_DIR = RESULT_MOMOTALK_DIR / "Momotalk_message_combined"
 DEFAULT_STORY_OUTPUT_DIR = RESULT_MOMOTALK_DIR / "academy_messanger_stories"
 DEFAULT_STORY_REPORT_DIR = RESULT_MOMOTALK_DIR / "academy_messanger_story_reports"
 
@@ -445,6 +446,18 @@ def safe_filename(value: str) -> str:
     text = value.translate({ord(char): "_" for char in invalid_chars})
     text = "".join("_" if ord(char) < 32 else char for char in text).strip(" .")
     return text or "unknown"
+
+
+def bond_story_filename(
+    display_name: str,
+    character_id: str,
+    number: int,
+    split_chapters: bool,
+) -> str:
+    """Return the bond filename matching the selected Momotalk output mode."""
+    if split_chapters:
+        return safe_filename(f"{display_name}_羁绊剧情_{number}.txt")
+    return safe_filename(f"{display_name}_{character_id}_羁绊剧情.txt")
 
 
 def convert_characters(
@@ -1003,6 +1016,17 @@ def append_compressed_dialogue(lines: list[str], speaker: str, text: str) -> Non
 
 
 
+def normalize_blank_lines(lines: list[str]) -> list[str]:
+    """Keep at most one empty line between Momotalk sections."""
+    normalized: list[str] = []
+    for line in lines:
+        if line == "" and normalized and normalized[-1] == "":
+            continue
+        normalized.append(line)
+    return normalized
+
+
+
 def compressed_branch_destinations(
     groups: dict[str, list[dict[str, Any]]],
 ) -> tuple[
@@ -1215,6 +1239,7 @@ def convert_compressed_character_stories(
     output_dir: Path,
     resolver: CharacterResolver,
     converter: OpenCC,
+    split_chapters: bool = True,
 ) -> dict[str, Any]:
     """Write compact, AI-oriented TXT files while preserving all dialogue."""
     characters: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -1236,10 +1261,16 @@ def convert_compressed_character_stories(
         except OSError:
             previous_files = set()
         for filename in previous_files:
-            if Path(filename).name == filename and filename.endswith(".txt"):
-                previous_path = output_dir / filename
-                if previous_path.is_file():
-                    previous_path.unlink()
+            relative_path = Path(filename)
+            if (
+                relative_path.is_absolute()
+                or ".." in relative_path.parts
+                or not filename.endswith(".txt")
+            ):
+                continue
+            previous_path = output_dir / relative_path
+            if previous_path.is_file():
+                previous_path.unlink()
 
     manifest: list[dict[str, Any]] = []
     for character_id, character_rows in characters.items():
@@ -1254,7 +1285,9 @@ def convert_compressed_character_stories(
             _branch_option_labels,
         ) = compressed_branch_destinations(groups)
         explicit_feedback_by_source, consumed_branch_groups = explicit_branch_feedbacks(groups)
-        lines = [f"{resolved_name}——Academy Messenger 通讯", ""]
+        lines: list[str] = []
+        chapter_files: list[str] = []
+        chapter_contents: list[str] = []
         seen_schedule_ids: set[str] = set()
         chapter_count = 0
         bond_count = 0
@@ -1262,6 +1295,19 @@ def convert_compressed_character_stories(
         image_count = 0
         fallback_count = 0
         previous_kind: str | None = None
+        character_directory = output_dir / safe_filename(f"{resolved_name}_{character_id}")
+
+        def finish_chapter() -> None:
+            if chapter_count == 0 or not lines:
+                return
+            content = "\n".join(normalize_blank_lines(lines)).rstrip() + "\n"
+            chapter_contents.append(content)
+            if split_chapters:
+                character_directory.mkdir(parents=True, exist_ok=True)
+                filename = f"{safe_filename(resolved_name)}_Momotalk_{chapter_count}.txt"
+                destination = character_directory / filename
+                destination.write_text(content, encoding="utf-8")
+                chapter_files.append(f"{character_directory.name}/{filename}")
 
         for group_id in group_order:
             if group_id in consumed_branch_groups:
@@ -1275,9 +1321,15 @@ def convert_compressed_character_stories(
             # group's dialogue. If a filtered input omits the first marker,
             # still create chapter 1 at the beginning of the file.
             if chapter_count == 0 or group_is_favor_rank_up(messages):
+                if chapter_count:
+                    finish_chapter()
                 chapter_count += 1
-                lines.append(f"=== 章节{chapter_count} ===")
-                lines.append("")
+                lines = [
+                    f"{resolved_name}——Academy Messenger 通讯",
+                    "",
+                    f"=== 章节{chapter_count} ===",
+                    "",
+                ]
                 previous_kind = None
 
             # If the trigger row was filtered out, the post-story group can
@@ -1290,7 +1342,7 @@ def convert_compressed_character_stories(
                 bond_count += 1
                 seen_schedule_ids.add(pre_schedule_id)
                 lines.append(
-                    f"【此处触发羁绊剧情{bond_count}，正文见《{resolved_name}_羁绊剧情》】"
+                    f"【此处触发羁绊剧情{bond_count}，参考 {bond_story_filename(resolved_name, character_id, bond_count, split_chapters)}】"
                 )
                 lines.append("")
                 previous_kind = None
@@ -1312,27 +1364,36 @@ def convert_compressed_character_stories(
             dialogue_count += section_dialogues
             image_count += section_images
             fallback_count += section_fallbacks
-            lines.append("")
 
             # FavorScheduleId belongs to the preceding communication. Put the
             # bond marker immediately after that communication, before the
             # first post-trigger dialogue, matching the manuscript layout.
-            if schedule_id:
+            if schedule_id and schedule_id not in seen_schedule_ids:
                 bond_count += 1
                 seen_schedule_ids.add(schedule_id)
                 previous_kind = None
                 lines.append(
-                    f"【此处触发羁绊剧情{bond_count}，正文见《{resolved_name}_羁绊剧情》】"
+                    f"【此处触发羁绊剧情{bond_count}，参考 {bond_story_filename(resolved_name, character_id, bond_count, split_chapters)}】"
                 )
                 lines.append("")
 
-        destination = output_dir / f"{safe_filename(resolved_name)}_{safe_filename(character_id)}.txt"
-        destination.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+        finish_chapter()
+        if not split_chapters:
+            character_directory.mkdir(parents=True, exist_ok=True)
+            filename = f"{safe_filename(resolved_name)}_{safe_filename(character_id)}_Momotalk.txt"
+            destination = character_directory / filename
+            destination.write_text(
+                "\n\n".join(content.rstrip() for content in chapter_contents).rstrip() + "\n",
+                encoding="utf-8",
+            )
+            chapter_files = [f"{character_directory.name}/{filename}"]
         manifest.append(
             {
                 "character_id": character_id,
                 "resolved_name": resolved_name,
-                "file": destination.name,
+                "directory": character_directory.name,
+                "files": chapter_files,
+                "chapter_count": chapter_count,
                 "records": len(character_rows),
                 "message_groups": len(group_order),
                 "bond_story_count": bond_count,
@@ -1343,18 +1404,22 @@ def convert_compressed_character_stories(
         )
 
     ownership_marker.write_text(
-        "\n".join(sorted(item["file"] for item in manifest)) + "\n",
+        "\n".join(
+            sorted(filename for item in manifest for filename in item["files"])
+        ) + "\n",
         encoding="utf-8",
     )
     return {
         "input_records": len(rows),
         "character_ids": len(characters),
-        "generated_files": len(manifest),
+        "generated_files": sum(len(item["files"]) for item in manifest),
+        "generated_character_directories": len(manifest),
         "bond_story_count": sum(item["bond_story_count"] for item in manifest),
         "dialogue_records": sum(item["dialogue_records"] for item in manifest),
         "image_records": sum(item["image_records"] for item in manifest),
         "language_fallback_records": sum(item["language_fallback_records"] for item in manifest),
         "output_dir": str(output_dir),
+        "split_chapters": split_chapters,
     }
 
 
@@ -1472,13 +1537,20 @@ def main() -> None:
         "--Momotalk_message",
         dest="momotalk_message",
         action="store_true",
-        help="生成 result/Momotalk/Momotalk_message/ AI 角色剧情 TXT",
+        help="生成 result/Momotalk/Momotalk_message/ 按章节拆分的 AI 角色剧情 TXT",
+    )
+    parser.add_argument(
+        "--Momotalk_message_combined",
+        dest="momotalk_message_combined",
+        action="store_true",
+        help="生成 result/Momotalk/Momotalk_message_combined/ 每角色一个完整 TXT",
     )
     parser.add_argument("--character-output-dir", type=Path, default=DEFAULT_CHARACTER_OUTPUT_DIR)
     parser.add_argument("--character-report-dir", type=Path, default=DEFAULT_CHARACTER_REPORT_DIR)
     parser.add_argument("--character-story-output-dir", type=Path, default=DEFAULT_CHARACTER_STORY_OUTPUT_DIR)
     parser.add_argument("--character-story-report-dir", type=Path, default=DEFAULT_CHARACTER_STORY_REPORT_DIR)
     parser.add_argument("--compressed-output-dir", type=Path, default=DEFAULT_COMPRESSED_OUTPUT_DIR)
+    parser.add_argument("--combined-compressed-output-dir", type=Path, default=DEFAULT_COMBINED_COMPRESSED_OUTPUT_DIR)
     parser.add_argument("--story-output-dir", type=Path, default=DEFAULT_STORY_OUTPUT_DIR)
     parser.add_argument("--story-report-dir", type=Path, default=DEFAULT_STORY_REPORT_DIR)
     args = parser.parse_args()
@@ -1491,7 +1563,12 @@ def main() -> None:
         group_id = str(row.get("MessageGroupId") or "ungrouped")
         groups[group_id].append(row)
 
-    if not args.by_character and not args.character_stories and not args.momotalk_message:
+    if (
+        not args.by_character
+        and not args.character_stories
+        and not args.momotalk_message
+        and not args.momotalk_message_combined
+    ):
         args.output_dir.mkdir(parents=True, exist_ok=True)
         args.report_dir.mkdir(parents=True, exist_ok=True)
         manifest: list[dict[str, Any]] = []
@@ -1534,19 +1611,24 @@ def main() -> None:
         print(f"输出目录：{args.output_dir}")
         print(f"报告目录：{args.report_dir}")
 
-    if args.momotalk_message:
+    if args.momotalk_message or args.momotalk_message_combined:
         compressed_summary = convert_compressed_character_stories(
             rows,
-            args.compressed_output_dir,
+            args.combined_compressed_output_dir
+            if args.momotalk_message_combined
+            else args.compressed_output_dir,
             resolver,
             converter,
+            split_chapters=not args.momotalk_message_combined,
         )
         print(
             f"AI 压缩剧情稿完成：{compressed_summary['character_ids']} 个角色，"
             f"{compressed_summary['generated_files']} 个 TXT，"
             f"{compressed_summary['bond_story_count']} 段羁绊剧情。"
         )
-        print(f"AI 压缩剧情目录：{args.compressed_output_dir}")
+        print(
+            f"AI 压缩剧情目录：{args.combined_compressed_output_dir if args.momotalk_message_combined else args.compressed_output_dir}"
+        )
 
     if args.character_stories:
         character_story_summary = convert_character_stories(
@@ -1564,7 +1646,7 @@ def main() -> None:
         print(f"剧情稿目录：{args.character_story_output_dir}")
         print(f"剧情稿报告目录：{args.character_story_report_dir}")
 
-    elif args.by_character and not args.momotalk_message:
+    elif args.by_character and not args.momotalk_message and not args.momotalk_message_combined:
         character_summary = convert_characters(
             rows,
             args.character_output_dir,

@@ -34,10 +34,10 @@
 | 文件格式 | 纯 TXT |
 | 正文标识 | 只保留角色名和皮肤名；不显示 CharacterId、MessageGroupId、FavorScheduleId 等技术 ID |
 | 分支汇合 | 保留选项文本，但只记录共同后续，不猜测每个选项对应哪条反馈 |
-| 文件名 | 允许使用 CharacterId 后缀确保唯一 |
+| 文件夹/文件名 | CharacterId 放在角色文件夹中；章节文件使用 `<显示名>_Momotalk_<章节编号>.txt` |
 | 正文标题 | 每个文件一行极简标题 |
 | 缺失文本 | 优先使用现有简体转换文本；MessageTW 缺失时按可用语言字段回退 |
-| CharacterId=0 | 单独生成 `系统_0.txt` |
+| CharacterId=0 | 单独生成 `系统_0/系统_Momotalk_1.txt` 等章节文件 |
 | 纯选项消息组 | 保留 |
 | 普通通讯 | 全部保留，保持完整时间顺序 |
 
@@ -138,7 +138,7 @@ result/Momotalk/Momotalk_message/
 
 规则：
 
-1. 文件名中的 CharacterId 只用于文件唯一性和人工定位。
+1. CharacterId 放在角色文件夹名中，用于文件夹唯一性和人工定位；章节文件名保持简洁。
 2. 正文不显示 CharacterId 或其他数据库 ID。
 3. 使用 Windows 安全文件名处理，保留中文括号和中文角色名。
 4. 同名基础角色/不同皮肤不得覆盖彼此。
@@ -164,7 +164,7 @@ result/Momotalk/Momotalk_message/
 
 阳奈（礼服）: 呵呵……谢谢老师说得这么热情
 
-【此处触发羁绊剧情1，正文见《<显示名>_羁绊剧情》】
+【此处触发羁绊剧情1，参考 <显示名>_羁绊剧情_1.txt】
 
 === 章节2 ===
 阳奈（礼服）: 老师，请问明天有时间吗？
@@ -176,7 +176,13 @@ result/Momotalk/Momotalk_message/
 
 ```text
 <显示名>——Academy Messenger 通讯
+
+文件夹：`<显示名>_<CharacterId>/`
+章节文件：`<显示名>_Momotalk_<章节编号>.txt`
+不分割文件：`<显示名>_<CharacterId>_Momotalk.txt`
 ```
+
+按章节版本和不分割版本使用不同输出目录，二者不会互相覆盖。
 
 标题不写 CharacterId、消息组 ID、数据库表名或转换时间。
 
@@ -291,7 +297,7 @@ result/Momotalk/Momotalk_message/
 === 章节1 ===
 ……本章节普通通讯……
 
-【此处触发羁绊剧情1，正文见《<显示名>_羁绊剧情》】
+【此处触发羁绊剧情1，参考 <显示名>_羁绊剧情_1.txt】
 阳奈: 羁绊剧情结束后接续的通讯……
 
 === 章节2 ===
@@ -303,10 +309,11 @@ result/Momotalk/Momotalk_message/
 1. 第一个通讯组前输出 `=== 章节1 ===`。
 2. 每个 `FavorRankUp` 消息组表示新的普通通讯章节开始；在该组对白前输出下一个 `=== 章节N ===`。
 3. 非零 `FavorScheduleId` 所在的通讯属于进入羁绊剧情前的最后一段通讯。
-4. 该通讯完整输出后，紧接着输出 `【此处触发羁绊剧情N，正文见《<显示名>_羁绊剧情》】`。
-5. `PreConditionFavorScheduleId` 只用于在触发记录缺失时恢复同样的羁绊标记，不输出数据库 ID。
-6. 羁绊后的通讯继续按源数据顺序输出，直到下一个 `=== 章节N ===`。
-7. 不输出“开始/结束，恢复普通通讯”等冗余边界文字；章节标记本身表示从羁绊后恢复普通通讯。
+4. 该通讯完整输出后，紧接着输出 `【此处触发羁绊剧情N，参考 <显示名>_羁绊剧情_N.txt】`；目标文件位于同一角色文件夹对应的羁绊剧情输出目录。combined 模式则使用 `【此处触发羁绊剧情N，参考 <显示名>_<CharacterId>_羁绊剧情.txt】`。
+5. 相同 `FavorScheduleId` 在同一角色通讯中只生成一个参考标记，避免重复编号。
+6. `PreConditionFavorScheduleId` 只用于在触发记录缺失时恢复同样的羁绊标记，不输出数据库 ID。
+7. 羁绊后的通讯继续按源数据顺序输出，直到下一个 `=== 章节N ===`。
+8. 不输出“开始/结束，恢复普通通讯”等冗余边界文字；章节标记本身表示从羁绊后恢复普通通讯。
 
 ### 6.5 图片和资源
 
@@ -380,10 +387,10 @@ result/Momotalk/Momotalk_message/
 
 ### 8.1 阳奈基础形态与礼服形态
 
-基础文件：
+基础形态文件夹和章节文件：
 
 ```text
-阳奈_10004.txt
+阳奈_10004/阳奈_Momotalk_1.txt
 ```
 
 正文对白前缀：
@@ -392,10 +399,10 @@ result/Momotalk/Momotalk_message/
 阳奈: 老师。这次休息日的深夜，有空吗？
 ```
 
-礼服文件：
+礼服文件夹和章节文件：
 
 ```text
-阳奈（礼服）_10086.txt
+阳奈（礼服）_10086/阳奈（礼服）_Momotalk_1.txt
 ```
 
 正文对白前缀：
@@ -435,7 +442,7 @@ result/Momotalk/Momotalk_message/
 ……
 阳奈: 这么晚真是抱歉，那么地点是……
 
-【此处触发羁绊剧情1，正文见《<显示名>_羁绊剧情》】
+【此处触发羁绊剧情1，参考 <显示名>_羁绊剧情_1.txt】
 阳奈: 是不是因为我的关系，睡眠时间变少了？
 阳奈: 晚安，老师
 
@@ -462,7 +469,8 @@ result/Momotalk/Momotalk_message/
 ### 文件和数量
 
 - 创建 `result/Momotalk/Momotalk_message/`。
-- 为当前 257 个 CharacterId 生成 257 个 TXT，包括 `系统_0.txt`。
+- 为当前 257 个 CharacterId 生成角色文件夹，并按章节生成 TXT，包括 `系统_0/系统_Momotalk_1.txt`。
+- 可选创建 `result/Momotalk/Momotalk_message_combined/`，为每个 CharacterId 生成一个完整 TXT，文件名为 `<显示名>_<CharacterId>_Momotalk.txt`；其中的羁绊参考使用 `<显示名>_<CharacterId>_羁绊剧情.txt`。
 - 文件名按显示名和 CharacterId 唯一，不发生覆盖。
 - 不生成面向用户的索引文件。
 
