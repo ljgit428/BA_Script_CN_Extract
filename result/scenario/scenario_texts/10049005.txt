@@ -3,12 +3,21 @@ GroupId: 10049005
 标题: 序幕
 
 旁白: [log]请成为魔法少女吧！[/log]
+
 铃美: Incendiary──Full Charge！
+
 旁白: [log]为什么……是魔法少女呢？[/log]
+
 澪纱: 以治愈之光，灌注满满的爱！
+
 旁白: [log]这个嘛……真要说的话……[/log]
+
 小孩A: Thermite White！Pink！加油！！
+
 小孩B: 打倒坏人吧！！
+
 Thermite White＆Pink: 魔法少女Heavy Calibers──登场！
+
 旁白: [log]因为又强又帅气呀！[/log]
+
 良舞: 你们是吃错药了吗！？
