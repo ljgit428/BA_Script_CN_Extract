@@ -13,6 +13,9 @@
 !/result/bond_story/
 !/result/bond_story/bond_story_text/
 !/result/bond_story/bond_story_text/**
+/result/bond_story/bond_story_text/圣亚*/
+/result/bond_story/bond_story_text/玛丽_*/
+/result/bond_story/bond_story_text/玛丽（*/
 !/result/free_dialog/
 !/result/free_dialog/free_dialog_text/
 !/result/free_dialog/free_dialog_text/**

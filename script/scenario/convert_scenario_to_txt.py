@@ -46,7 +46,6 @@ REACTION_EMOTION_MAP = {
     "[!]": "露出惊讶的表情",
     "[?]": "露出疑惑的表情",
     "[?!]": "露出惊讶又困惑的表情",
-    "[반응]": "做出反应",
     "[반짝]": "眼神闪亮",
     "[음표]": "语气轻快，显得心情很好",
     "[재잘]": "叽叽喳喳",
@@ -70,11 +69,11 @@ REACTION_EMOTION_MAP = {
     "...": "陷入沉默",
 }
 
+# Only retain actions with a reliable visible meaning. Generic animation controls
+# such as `jump` and `greeting` are intentionally ignored instead of guessed.
 REACTION_ACTION_MAP = {
     "stiff": "僵住",
     "shake": "身体微微发抖",
-    "jump": "吓了一跳",
-    "greeting": "热情地打招呼",
     "hophop": "兴奋地蹦跳",
     "falldownl": "摔倒",
     "falldownr": "摔倒",
@@ -82,7 +81,7 @@ REACTION_ACTION_MAP = {
 
 TECHNICAL_ACTIONS = {
     "a", "al", "ar", "d", "dr", "dl", "h", "m1", "m2", "m3", "m4", "m5",
-    "sig", "closeup", "hide", "show", "black", "serial", "greeting",
+    "sig", "closeup", "hide", "show", "black", "serial", "greeting", "jump",
 }
 
 
@@ -102,19 +101,6 @@ def reaction_emotion_label(value: str, has_dialogue: bool) -> str | None:
         return "语气轻快，显得心情很好" if has_dialogue else "显得心情愉快"
     return REACTION_EMOTION_MAP.get(value)
 
-
-def combine_reaction_effects(effects: list[str]) -> list[str]:
-    """Combine common cheerful greeting effects into one natural phrase."""
-    mood_labels = {"语气轻快，显得心情很好", "显得心情愉快"}
-    if "热情地打招呼" not in effects or not mood_labels.intersection(effects):
-        return effects
-    combined = [
-        effect
-        for effect in effects
-        if effect != "热情地打招呼" and effect not in mood_labels
-    ]
-    combined.append("心情愉快地打招呼")
-    return combined
 
 
 def reaction_lines_for_row(
@@ -172,7 +158,6 @@ def reaction_lines_for_row(
         role_effects = effects.get(role_id, [])
         if not role_effects:
             continue
-        role_effects = combine_reaction_effects(role_effects)
         if (
             has_wait
             and not has_dialogue
@@ -545,6 +530,8 @@ def append_choice_item(
         output.append("")
     lines[0] = f"{choice_id}. {lines[0]}"
     output.extend(lines)
+    if output[-1] != "":
+        output.append("")
     return True
 
 
@@ -660,7 +647,6 @@ def convert_rows(
     pending_order: list[str] = []
     active_branch: str | None = None
     choice_block_open = False
-    last_branch_signature: tuple[str, ...] | None = None
 
     if rows and rows[0].get("GroupId") is not None:
         output.extend([f"GroupId: {rows[0]['GroupId']}", ""])
@@ -735,7 +721,6 @@ def convert_rows(
             # 开启独立的选择块，而不是接续到上一个已完成的块。
             choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
-            last_branch_signature = None
             if diagnostics is not None:
                 diagnostics["choice_rows"] = diagnostics.get("choice_rows", 0) + len(choice_entries)
             for tag, choice_text in choice_entries:
@@ -771,7 +756,6 @@ def convert_rows(
             pending_order.clear()
             choice_block_open = close_choice_block(output, choice_block_open)
             active_branch = None
-            last_branch_signature = None
 
         # 只有回到 SelectionGroup=0 的普通角色对白，才结束当前选择块。
         # 标题、#st 旁白和其他演出记录不能触发选择块的间隔。
@@ -791,7 +775,6 @@ def convert_rows(
                 if output and output[-1] != "":
                     output.append("")
             active_branch = None
-            last_branch_signature = None
 
         # 当前记录是某个选项的实际反应时，按选项声明顺序补齐此前的选项，
         # 再将当前反应挂到对应选项下，避免源数据中的 ns 分支抢到前面。
@@ -815,17 +798,9 @@ def convert_rows(
                         resolver=resolver,
                         diagnostics=diagnostics,
                     )
-                    branch_signature = tuple(branch_lines)
-                    # 连续选项拥有相同反馈时视为同一组；反馈变化表示
-                    # 新的独立选择集合，关闭当前块并重新编号块内选项。
-                    if (
-                        choice_block_open
-                        and last_branch_signature is not None
-                        and branch_signature != last_branch_signature
-                    ):
-                        choice_block_open = close_choice_block(output, choice_block_open)
+                    # 同一组选项的不同分支也必须保留在同一个选择块中，
+                    # 这样每个选项及其完整分支对白都会被一起包含。
                     append_dialogue_lines(output, branch_lines)
-                    last_branch_signature = branch_signature
                     branch_dialogue_output = True
             active_branch = selection_group
         elif selection_group != "0" and has_branch_content and active_branch != selection_group:
