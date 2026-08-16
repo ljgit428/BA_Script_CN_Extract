@@ -1,38 +1,21 @@
 === 自由会话 83306100720 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83306
-场景资源：Field833/Field_833_Zone10
+
+场景：FieldSeason 833 · FieldDate 83306 · Field833/Field_833_Zone10
+说话人：伊吹、绮罗罗、绘里香
+触发器：DialogTrigger_Basic_6（场景 83306100）
 世界地图区域：73
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：姐姐们！我们下次玩扮家家酒吧！
-持续时间：2500 ms
+伊吹: 姐姐们！我们下次玩扮家家酒吧！
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：跟伊吹说好了喔～！
-持续时间：2500 ms
+伊吹: 跟伊吹说好了喔～！
 
 --- 阶段 2 ---
-说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：嗯～！打勾勾～！
-持续时间：2500 ms
+绮罗罗: 嗯～！打勾勾～！
 
 --- 阶段 3 ---
-说话者：TargetIndex 2（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：唔，我答应你…
-持续时间：2500 ms
+绘里香: 唔，我答应你…
 
 --- 阶段 4 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：Heart（Heart）
-内容：[하트]
-持续时间：1000 ms
+伊吹（爱心）: [하트]

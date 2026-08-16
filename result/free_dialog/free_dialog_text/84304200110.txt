@@ -1,26 +1,15 @@
 === 自由会话 84304200110 ===
-场景：千年EXPO
-关联角色：宁瑠（CH0280）
-FieldDateId：84304
-场景资源：Field843/Field_843_Zone02
+
+场景：千年EXPO · FieldDate 84304 · Field843/Field_843_Zone02
+说话人：红盔士兵(AR)、头盔士兵(AR)
+触发器：DialogTrigger_Basic_5（场景 8430420）
 世界地图区域：843028
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：宁瑠）
-类型：不满（Upset）
-内容：[속상함]
-持续时间：1000 ms
+红盔士兵(AR)（不满）: [속상함]
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：呃啊…居然又打已经挨揍的地方…
-持续时间：2500 ms
+红盔士兵(AR): 呃啊…居然又打已经挨揍的地方…
 
 --- 阶段 2 ---
-说话者：TargetIndex 1（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：我，我什么都不知道！
-持续时间：2500 ms
+头盔士兵(AR): 我，我什么都不知道！

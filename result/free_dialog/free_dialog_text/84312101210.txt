@@ -1,26 +1,15 @@
 === 自由会话 84312101210 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84312
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84312 · Field843/Field_843_Zone01
+说话人：圣亚
+触发器：DialogTrigger_Basic（场景 8431270）
 世界地图区域：843075
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：真是出色的支援啊，莉央。
-持续时间：2500 ms
+圣亚: 真是出色的支援啊，莉央。
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：疑问（Question）
-内容：[…]
-持续时间：1000 ms
+圣亚（疑问）: […]
 
 --- 阶段 2 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：……有点安静呢。
-持续时间：2500 ms
+圣亚: ……有点安静呢。

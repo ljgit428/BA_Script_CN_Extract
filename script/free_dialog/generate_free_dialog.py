@@ -2,8 +2,10 @@
 """按自由会话 GroupId 提取 Field 探索中的人物自由活动对白。
 
 CharacterDialogFieldExcelTable 的每个 GroupId 代表一段独立会话，因此本脚本
-按段落输出一个 TXT，而不是按角色合并。该表只提供 TargetIndex，不直接提供角色名；
-脚本会尝试通过 FieldDate 的角色图标和 ScenarioCharacterName 表补充关联角色名。
+按段落输出一个 TXT。该表只提供 TargetIndex，不直接提供角色名；说话人来自
+extract_field_speakers.py 解析 GL designlevel 场景 bundle 得到的
+free_dialog_speakers.json（targets 顺序即 TargetIndex 顺序），缺失时回退
+FieldDate 角色图标推断。
 """
 
 from __future__ import annotations
@@ -30,6 +32,7 @@ SCENE_INPUT = RAW_EXCEL_DIR / "FieldSceneExcelTable.json"
 WORLD_MAP_INPUT = RAW_EXCEL_DIR / "FieldWorldMapZoneExcelTable.json"
 DATE_INPUT = RAW_EXCEL_DIR / "FieldDateExcelTable.json"
 NAME_INPUT = PROJECT_ROOT / "raw" / "ba-data-global" / "DB" / "ScenarioCharacterNameExcelTable.json"
+SPEAKER_MAP_INPUT = RESULT_DIR / "free_dialog_speakers.json"
 
 # 已确认的 FieldSeason 中文名称。未收录的季节只输出原始 FieldSeasonId。
 FIELD_SEASON_NAMES = {
@@ -46,6 +49,15 @@ DIALOG_TYPE_NAMES = {
     "Sweat": "汗",
     "Dot": "省略号",
     "Music": "音乐",
+    "Angry": "愤怒",
+    "Bulb": "灵感",
+    "Chat": "闲聊",
+    "Evidence": "线索",
+    "Heart": "爱心",
+    "Keyword": "关键词",
+    "Keyword_843": "关键词",
+    "Momotalk": "MomoTalk",
+    "Phone": "电话",
 }
 
 
@@ -77,6 +89,8 @@ def simplify(value: Any, converter: OpenCC) -> str:
     text = text.replace("\\n", "\n")
     text = re.sub(r"\[땀\]", "[汗]", text)
     text = re.sub(r"\[손땀\]", "[汗]", text)
+    # 官方繁中偶把换行误写为 "/n"（CJK 之后）
+    text = re.sub(r"(?<=[\u3000-\u9fff\uff00-\uffef…？！?!])/n", "\n", text)
     return converter.convert(text).strip()
 
 
@@ -173,11 +187,51 @@ def build_character_names(rows: list[dict[str, Any]], converter: OpenCC) -> dict
     }
 
 
-def speaker_label(target_index: Any, date_character: str) -> str:
-    target = as_id(target_index)
+def load_speaker_map(path: Path) -> dict[str, dict[str, Any]]:
+    if not path.exists():
+        print(f"警告：未找到说话人映射 {path}，将回退到 FieldDate 关联角色推断。")
+        return {}
+    with path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
+    groups = data.get("groups") if isinstance(data, dict) else None
+    if not isinstance(groups, dict):
+        print(f"警告：{path} 缺少 groups 结构，将回退到 FieldDate 关联角色推断。")
+        return {}
+    return groups
+
+
+def cap_join(items: list[str], limit: int, separator: str = "、") -> str:
+    if len(items) <= limit:
+        return separator.join(items)
+    return f"{separator.join(items[:limit])} 等 {len(items)} 项"
+
+
+def row_speaker(
+    speaker_entry: dict[str, Any],
+    target_index: Any,
+    date_character: str,
+) -> str:
+    """按 TargetIndex 解析说话人：精确映射 → 段落聚合 → FieldDate 推断 → 原始索引。"""
+    by_index = speaker_entry.get("speaker_by_target_index") or {}
+    candidate = by_index.get(as_id(target_index))
+    if isinstance(candidate, str) and candidate:
+        return candidate
+    if candidate:
+        return cap_join(list(candidate), 3, "／")
+    speakers = speaker_entry.get("speakers_cn") or []
+    speakers = [name for name in speakers if name and name != "(未确定)"]
+    if speakers:
+        return cap_join(speakers, 3, "／")
     if date_character:
-        return f"TargetIndex {target}（FieldDate 关联角色：{date_character}）"
-    return f"TargetIndex {target}（角色名仍未在 Field 数据中直接提供）"
+        return date_character
+    return f"TargetIndex {as_id(target_index)}"
+
+
+def scene_of_instance(
+    instance: dict[str, Any], scene_index: dict[str, dict[str, Any]]
+) -> dict[str, Any] | None:
+    scene_id = as_id(instance.get("scene"))
+    return scene_index.get(scene_id) if scene_id != "unknown" else None
 
 
 def clear_owned_outputs(output_dir: Path) -> None:
@@ -208,6 +262,7 @@ def generate(
     world_map_path: Path = WORLD_MAP_INPUT,
     date_path: Path = DATE_INPUT,
     name_path: Path = NAME_INPUT,
+    speaker_map_path: Path = SPEAKER_MAP_INPUT,
 ) -> dict[str, Any]:
     converter = OpenCC("t2s")
     dialog_rows = load_rows(input_path)
@@ -216,6 +271,7 @@ def generate(
     world_map_rows = load_rows(world_map_path) if world_map_path.exists() else []
     date_rows = load_rows(date_path) if date_path.exists() else []
     name_rows = load_rows(name_path) if name_path.exists() else []
+    speaker_map = load_speaker_map(speaker_map_path)
 
     grouped: dict[str, list[tuple[int, dict[str, Any]]]] = defaultdict(list)
     for source_index, row in enumerate(dialog_rows):
@@ -251,46 +307,63 @@ def generate(
         if not token and tokens:
             token = tokens[0]
         date_character = character_names.get(token, "")
-        season_name = FIELD_SEASON_NAMES.get(season_id, f"FieldSeason {season_id}" if season_id else "未知场景")
+        season_name = FIELD_SEASON_NAMES.get(season_id, f"FieldSeason {season_id}" if season_id else "未知季节")
         filename = f"{safe_filename(group_id)}.txt"
 
+        speaker_entry = speaker_map.get(group_id) or {}
+        speakers = [name for name in speaker_entry.get("speakers_cn") or [] if name and name != "(未确定)"]
+        instances = speaker_entry.get("instances") or []
+        header_scene_parts = [season_name]
+        if date_id:
+            header_scene_parts.append(f"FieldDate {date_id}")
+        if scene_id:
+            header_scene_parts.append(str(scene.get("ArtLevelPath") or scene.get("DesignLevelPath") or scene_id))
+        elif instances:
+            instance_scene = scene_of_instance(instances[0], scene_index)
+            header_scene_parts.append(
+                str((instance_scene or {}).get("ArtLevelPath") or f"场景 {instances[0].get('scene')}")
+            )
         lines = [
             f"=== 自由会话 {group_id} ===",
-            f"场景：{season_name}",
+            "",
+            f"场景：{' · '.join(header_scene_parts)}",
         ]
-        if date_character:
-            lines.append(f"关联角色：{date_character}（{token}）")
-        elif token:
-            lines.append(f"关联角色：{token}（角色名未在名称表中找到）")
-        if date_id:
-            lines.append(f"FieldDateId：{date_id}")
-        if scene_id:
-            lines.append(f"场景资源：{scene.get('ArtLevelPath') or scene.get('DesignLevelPath') or scene_id}")
+        if speakers:
+            lines.append(f"说话人：{cap_join(speakers, 6)}")
+        elif date_character:
+            lines.append(f"关联角色：{date_character}（FieldDate 推断）")
+        if instances:
+            trigger_parts = sorted(
+                {
+                    f"{instance.get('trigger')}（场景 {instance.get('scene')}）"
+                    for instance in instances
+                    if instance.get("trigger")
+                }
+            )
+            lines.append(f"触发器：{cap_join(trigger_parts, 3, '；')}")
         if world_map_zones:
             zone_ids = "、".join(as_id(row.get("Id")) for row in world_map_zones)
             lines.append(f"世界地图区域：{zone_ids}")
-        lines.extend([
-            f"来源表：{input_path.name}",
-            "说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。",
-            "",
-        ])
+        lines.append("")
 
+        current_phase = None
         for _, row in sorted(entries, key=lambda item: (int(item[1].get("Phase") or 0), item[0])):
             phase = row.get("Phase")
             dialog_type = as_id(row.get("DialogType"))
+            if phase != current_phase:
+                if current_phase is not None:
+                    lines.append("")
+                lines.append(f"--- 阶段 {phase} ---")
+                current_phase = phase
+            speaker = row_speaker(speaker_entry, row.get("TargetIndex"), date_character)
             type_name = DIALOG_TYPE_NAMES.get(dialog_type, dialog_type)
-            lines.extend([
-                f"--- 阶段 {phase} ---",
-                f"说话者：{speaker_label(row.get('TargetIndex'), date_character)}",
-                f"类型：{type_name}（{dialog_type}）",
-            ])
+            if dialog_type != "Talk":
+                speaker = f"{speaker}（{type_name}）"
             text = simplify(row.get("LocalizeTW"), converter)
             if not text:
                 text = simplify(row.get("LocalizeKR"), converter)
-            lines.append(f"内容：{text or '[无本地化文本]'}")
-            if row.get("Duration") not in (None, ""):
-                lines.append(f"持续时间：{row['Duration']} ms")
-            lines.append("")
+            lines.append(f"{speaker}: {text or '[无本地化文本]'}")
+        lines.append("")
 
         destination = output_dir / filename
         destination.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
@@ -316,7 +389,12 @@ def generate(
                     for row in linked_interactions
                     for interaction_id in flatten_ids(row.get("InteractionId"))
                 ],
-                "has_direct_speaker_name": False,
+                "speaker_names": speakers,
+                "speaker_by_target_index": speaker_entry.get("speaker_by_target_index") or {},
+                "speaker_scenes": sorted(
+                    {as_id(instance.get("scene")) for instance in instances if instance.get("scene")}
+                ),
+                "has_direct_speaker_name": bool(speakers),
             }
         )
 
@@ -330,7 +408,12 @@ def generate(
         "paragraphs_with_scene_resource": sum(bool(item["field_scene_id"]) for item in manifest),
         "paragraphs_with_interaction_link": sum(bool(item["linked_interaction_ids"]) for item in manifest),
         "paragraphs_with_world_map_zone": sum(bool(item["world_map_zone_ids"]) for item in manifest),
-        "speaker_name_source_available": False,
+        "speaker_name_source_available": bool(speaker_map),
+        "speaker_map_file": str(speaker_map_path) if speaker_map else "",
+        "paragraphs_with_scene_speaker": sum(bool(item["speaker_names"]) for item in manifest),
+        "paragraphs_with_target_index_speaker": sum(
+            bool(item["speaker_by_target_index"]) for item in manifest
+        ),
         "field_date_character_names": sum(bool(item["character_name"]) for item in manifest),
         "output_dir": str(output_dir),
         "report_dir": str(report_dir),
@@ -360,6 +443,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--world-map", type=Path, default=WORLD_MAP_INPUT)
     parser.add_argument("--date", type=Path, default=DATE_INPUT, help="FieldDate 角色图标表路径。")
     parser.add_argument("--names", type=Path, default=NAME_INPUT, help="Scenario 角色名称表路径。")
+    parser.add_argument(
+        "--speakers",
+        type=Path,
+        default=SPEAKER_MAP_INPUT,
+        help="free_dialog_speakers.json 路径（由 extract_field_speakers.py 生成）。",
+    )
     return parser.parse_args()
 
 
@@ -374,6 +463,7 @@ def main() -> None:
         world_map_path=args.world_map,
         date_path=args.date,
         name_path=args.names,
+        speaker_map_path=args.speakers,
     )
 
 

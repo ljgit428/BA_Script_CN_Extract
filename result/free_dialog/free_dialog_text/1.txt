@@ -1,64 +1,25 @@
 === 自由会话 1 ===
-场景：未知场景
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+场景：未知季节
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：对话（Talk）
-内容：다이얼로그 테스트. 페이즈 0. 타겟 0
-持续时间：0 ms
+TargetIndex 0: 다이얼로그 테스트. 페이즈 0. 타겟 0
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（角色名仍未在 Field 数据中直接提供）
-类型：对话（Talk）
-内容：다이얼로그 테스트. 페이즈 1. 타겟 1
-持续时间：0 ms
+TargetIndex 1: 다이얼로그 테스트. 페이즈 1. 타겟 1
 
 --- 阶段 2 ---
-说话者：TargetIndex 2（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：다이얼로그 테스트. 페이즈 2. 타겟 2
-持续时间：0 ms
+TargetIndex 2（内心独白）: 다이얼로그 테스트. 페이즈 2. 타겟 2
 
 --- 阶段 3 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：다이얼로그 테스트. 페이즈 3. 타겟 0
-持续时间：0 ms
-
---- 阶段 3 ---
-说话者：TargetIndex 1（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：다이얼로그 테스트. 페이즈 3. 타겟 1
-持续时间：0 ms
-
---- 阶段 3 ---
-说话者：TargetIndex 2（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：다이얼로그 테스트. 페이즈 3. 타겟 2
-持续时间：0 ms
+TargetIndex 0（内心独白）: 다이얼로그 테스트. 페이즈 3. 타겟 0
+TargetIndex 1（内心独白）: 다이얼로그 테스트. 페이즈 3. 타겟 1
+TargetIndex 2（内心独白）: 다이얼로그 테스트. 페이즈 3. 타겟 2
 
 --- 阶段 4 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：疑问（Question）
-内容：[无本地化文本]
-持续时间：0 ms
-
---- 阶段 4 ---
-说话者：TargetIndex 1（角色名仍未在 Field 数据中直接提供）
-类型：不满（Upset）
-内容：[无本地化文本]
-持续时间：0 ms
-
---- 阶段 4 ---
-说话者：TargetIndex 2（角色名仍未在 Field 数据中直接提供）
-类型：惊讶（Surprise）
-内容：[无本地化文本]
-持续时间：0 ms
+TargetIndex 0（疑问）: [无本地化文本]
+TargetIndex 1（不满）: [无本地化文本]
+TargetIndex 2（惊讶）: [无本地化文本]
 
 --- 阶段 5 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：다이얼로그 테스트 끝
-持续时间：0 ms
+TargetIndex 0（内心独白）: 다이얼로그 테스트 끝

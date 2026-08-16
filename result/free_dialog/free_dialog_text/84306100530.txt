@@ -1,38 +1,21 @@
 === 自由会话 84306100530 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84306
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84306 · Field843/Field_843_Zone01
+说话人：咏叶、千年学生
+触发器：DialogTrigger_Basic_84306100530（场景 8430640）
 世界地图区域：843047
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：让身高变高的技术？
-持续时间：2500 ms
+咏叶: 让身高变高的技术？
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：…真是天才？怎么解决稳定化问题的呢？
-持续时间：2500 ms
+咏叶: …真是天才？怎么解决稳定化问题的呢？
 
 --- 阶段 2 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：不满（Upset）
-内容：[속상함]
-持续时间：1000 ms
+千年学生（不满）: [속상함]
 
 --- 阶段 3 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：消失到哪里去了呢？
-持续时间：2500 ms
+千年学生: 消失到哪里去了呢？
 
 --- 阶段 4 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：那明明是我辛苦制作出来的东西…
-持续时间：2500 ms
+千年学生: 那明明是我辛苦制作出来的东西…

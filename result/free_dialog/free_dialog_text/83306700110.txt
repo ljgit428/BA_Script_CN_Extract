@@ -1,18 +1,11 @@
 === 自由会话 83306700110 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83306
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+场景：FieldSeason 833 · FieldDate 83306 · Field833/Field_833_Zone05
+说话人：阳奈
+触发器：DialogTrigger_Basic_4（场景 83306050）
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：内心独白（Think）
-内容：（今天的练习也很令人期待…）
-持续时间：2500 ms
+阳奈（内心独白）: （今天的练习也很令人期待…）
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：音乐（Music）
-内容：[음표]
-持续时间：1000 ms
+阳奈（音乐）: [음표]

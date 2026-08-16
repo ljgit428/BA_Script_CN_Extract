@@ -1,14 +1,9 @@
 === 自由会话 84312101330 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84312
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84312 · Field843/Field_843_Zone01
+说话人：千年学生
+触发器：DialogTrigger_Basic_1（场景 8431280）
 世界地图区域：843075
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：又在一起密谋什么事了…
-持续时间：2500 ms
+千年学生: 又在一起密谋什么事了…

@@ -1,44 +1,24 @@
 === 自由会话 84307100410 ===
-场景：千年EXPO
-关联角色：宁瑠（CH0280）
-FieldDateId：84307
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84307 · Field843/Field_843_Zone01
+说话人：头盔士兵(AR)
+触发器：DialogTrigger_Basic_84307100410（场景 8430740）
 世界地图区域：843052
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：宁瑠）
-类型：不满（Upset）
-内容：[속상함]
-持续时间：1000 ms
+头盔士兵(AR)（不满）: [속상함]
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：队长被橘头发抓走了…
-持续时间：2500 ms
+头盔士兵(AR): 队长被橘头发抓走了…
 
 --- 阶段 2 ---
-说话者：TargetIndex 2（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：我们现在该怎么办？
-持续时间：2500 ms
+头盔士兵(AR): 我们现在该怎么办？
 
 --- 阶段 3 ---
-说话者：TargetIndex 0（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：等等…重新选一个队长不就好了？
-持续时间：2500 ms
+头盔士兵(AR): 等等…重新选一个队长不就好了？
 
 --- 阶段 4 ---
-说话者：TargetIndex 1（FieldDate 关联角色：宁瑠）
-类型：感叹（Exclaim）
-内容：[!]
-持续时间：1000 ms
+头盔士兵(AR)（感叹）: [!]
 
 --- 阶段 5 ---
-说话者：TargetIndex 2（FieldDate 关联角色：宁瑠）
-类型：对话（Talk）
-内容：哦！你是天才吗？
-持续时间：2500 ms
+头盔士兵(AR): 哦！你是天才吗？

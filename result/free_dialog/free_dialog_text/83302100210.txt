@@ -1,20 +1,12 @@
 === 自由会话 83302100210 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83302
-场景资源：Field833/Field_833_Zone03
+
+场景：FieldSeason 833 · FieldDate 83302 · Field833/Field_833_Zone03
+说话人：伊织
+触发器：DialogTrigger_Basic_4（场景 83302100）
 世界地图区域：17
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：委员长，要现在出发吗？
-持续时间：2500 ms
+伊织: 委员长，要现在出发吗？
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：学生餐厅居然有怪物，真不敢相信…
-持续时间：2500 ms
+伊织: 学生餐厅居然有怪物，真不敢相信…

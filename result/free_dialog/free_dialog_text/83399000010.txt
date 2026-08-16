@@ -1,11 +1,8 @@
 === 自由会话 83399000010 ===
-场景：FieldSeason 833
-FieldDateId：83399
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+场景：FieldSeason 833 · FieldDate 83399 · Field833/Field_833_Zone03
+说话人：互动路人
+触发器：DialogTrigger_Location_1（场景 83302100）；DialogTrigger_Location_1（场景 83304100）；DialogTrigger_Location_1（场景 83305100） 等 11 项
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：内心独白（Think）
-内容：（还有事要做）
-持续时间：2500 ms
+互动路人（内心独白）: （还有事要做）

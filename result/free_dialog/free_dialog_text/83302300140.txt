@@ -1,20 +1,12 @@
 === 自由会话 83302300140 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83302
-场景资源：Field833/Field_833_Zone02
+
+场景：FieldSeason 833 · FieldDate 83302 · Field833/Field_833_Zone02
+说话人：风纪委员士兵(SG)、千夏
+触发器：BubbleTalk（场景 83302300）
 世界地图区域：20
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：不满（Upset）
-内容：[속상함]
-持续时间：1000 ms
+风纪委员士兵(SG)（不满）: [속상함]
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：原来如此，还没结束啊。
-持续时间：2500 ms
+千夏: 原来如此，还没结束啊。

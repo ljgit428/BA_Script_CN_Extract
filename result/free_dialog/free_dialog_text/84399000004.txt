@@ -1,11 +1,8 @@
 === 自由会话 84399000004 ===
-场景：千年EXPO
-FieldDateId：84399
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
+
+场景：千年EXPO · FieldDate 84399 · Field843/Field_843_Zone06
+说话人：互动路人
+触发器：DialogTrigger_Basic_10（场景 8431220）；DialogTrigger_Basic_13（场景 8430330）；DialogTrigger_Basic_18（场景 8430330） 等 5 项
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（角色名仍未在 Field 数据中直接提供）
-类型：省略号（Dot）
-内容：[…]
-持续时间：2000 ms
+互动路人（省略号）: […]

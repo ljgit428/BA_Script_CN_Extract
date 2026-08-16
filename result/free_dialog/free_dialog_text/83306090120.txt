@@ -1,20 +1,12 @@
 === 自由会话 83306090120 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83306
-场景资源：Field833/Field_833_Zone09
+
+场景：FieldSeason 833 · FieldDate 83306 · Field833/Field_833_Zone09
+说话人：飞车党少女(SR)、飞车党少女(SMG)
+触发器：DialogTrigger_Basic_4（场景 83306090）
 世界地图区域：72
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：等等想去吃蜂蜜巧克力百汇冰淇淋，一起吗？
-持续时间：2500 ms
+飞车党少女(SR): 等等想去吃蜂蜜巧克力百汇冰淇淋，一起吗？
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：加一！！
-持续时间：2500 ms
+飞车党少女(SMG): 加一！！

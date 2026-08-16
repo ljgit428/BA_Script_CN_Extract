@@ -1,20 +1,12 @@
 === 自由会话 84301300220 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84301
-场景资源：Field843/Field_843_Zone09
+
+场景：千年EXPO · FieldDate 84301 · Field843/Field_843_Zone09
+说话人：花凛(制服)、明日奈(制服)
+触发器：DialogTrigger_Basic_2（场景 8430130）
 世界地图区域：843011
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：唉，居然犯了这种错…
-持续时间：2500 ms
+花凛(制服): 唉，居然犯了这种错…
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：哈哈哈！我想亲自看看。
-持续时间：2500 ms
+明日奈(制服): 哈哈哈！我想亲自看看。

@@ -1,44 +1,24 @@
 === 自由会话 83301200210 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83301
-场景资源：Field833/Field_833_Zone09
+
+场景：FieldSeason 833 · FieldDate 83301 · Field833/Field_833_Zone09
+说话人：绮罗罗
+触发器：DialogTrigger_Basic（场景 83301200）
 世界地图区域：9
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：呀齁～阳奈亲～
-持续时间：2500 ms
+绮罗罗: 呀齁～阳奈亲～
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
-类型：疑问（Question）
-内容：[?]
-持续时间：1000 ms
+绮罗罗（疑问）: [?]
 
 --- 阶段 2 ---
-说话者：TargetIndex 1（FieldDate 关联角色：阳奈）
-类型：内心独白（Think）
-内容：（阳奈亲…？）
-持续时间：2500 ms
+绮罗罗（内心独白）: （阳奈亲…？）
 
 --- 阶段 3 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：格黑娜温泉泡汤券～？
-持续时间：2500 ms
+绮罗罗: 格黑娜温泉泡汤券～？
 
 --- 阶段 4 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：没错～我也买了一张～听说是温泉的革命～
-持续时间：2500 ms
+绮罗罗: 没错～我也买了一张～听说是温泉的革命～
 
 --- 阶段 5 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：重点是感觉很有趣～！
-持续时间：2500 ms
+绮罗罗: 重点是感觉很有趣～！

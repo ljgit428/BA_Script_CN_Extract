@@ -72,6 +72,6 @@ python script/free_dialog/generate_free_dialog.py
 
 `generate_bond_stories.py` 默认从 `raw/ba-data-global/DB/` 读取羁绊日程、ScenarioScript 和角色映射表，按角色文件夹和章节输出到 `result/bond_story/bond_story_text/`，报告输出到 `result/bond_story/reports/`。Momotalk 的参考标记会引用对应的 `<角色名>_羁绊剧情_<章节编号>.txt`；combined 模式则引用 `<角色名>_<CharacterId>_羁绊剧情.txt`。加上 `--with-reactions` 后会改写入 `result/bond_story/bond_story_text_with_reactions/` 和 `result/bond_story/bond_story_reaction_reports/`，原始文本集保持不变。它也支持 `--schedule`、`--script`、`--names`、`--db-dir`、`--output-dir` 和 `--report-dir` 覆盖默认路径。
 
-`generate_free_dialog.py` 默认读取 `raw/ba-data-global/Excel/CharacterDialogFieldExcelTable.json`，每个 `GroupId` 生成一个 `result/free_dialog/free_dialog_text/<GroupId>.txt`，并用 FieldInteraction/FieldScene 表补充交互与场景资源信息。角色名通过 `FieldDateExcelTable` 的角色图标和 `ScenarioCharacterNameExcelTable` 映射；由于自由会话表没有直接的逐阶段说话人字段，文本同时保留 `TargetIndex`。
+`generate_free_dialog.py` 默认读取 `raw/ba-data-global/Excel/CharacterDialogFieldExcelTable.json`，每个 `GroupId` 生成一个 `result/free_dialog/free_dialog_text/<GroupId>.txt`。输出先给标题和场景/其他信息（FieldSeason、FieldDate、场景资源、说话人、触发器），再按阶段输出 `角色: 台词`，每行只有一个说话人。说话人优先来自 `result/free_dialog/free_dialog_speakers.json`（`extract_field_speakers.py` 解析 GL designlevel 场景 bundle 生成）：`targets` 精确 NPC（顺序即 `TargetIndex`）> 父节点 NPC > 触发器名标注 > 通用池互动路人 > FieldDate 关联主角独白（833=阳奈、843=圣亚/宁瑠；没有老师参与）；缺失时回退 `FieldDateExcelTable` 角色图标推断，再退回原始 `TargetIndex`。
 
 所有转换器都支持命令行参数覆盖默认输入、输出和报告目录；默认值始终指向仓库内的 `raw/` 与 `result/`。

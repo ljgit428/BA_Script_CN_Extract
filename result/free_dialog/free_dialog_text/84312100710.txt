@@ -1,32 +1,18 @@
 === 自由会话 84312100710 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84312
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84312 · Field843/Field_843_Zone01
+说话人：桃井、绿、柚子、爱丽丝
+触发器：DialogTrigger_Basic_3（场景 8431230）
 世界地图区域：843075
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：呜呜…本来能赢的说…
-持续时间：2500 ms
+桃井: 呜呜…本来能赢的说…
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：真可惜…谁叫姐姐太冲动了。
-持续时间：2500 ms
+绿: 真可惜…谁叫姐姐太冲动了。
 
 --- 阶段 2 ---
-说话者：TargetIndex 2（FieldDate 关联角色：圣亚）
-类型：汗（Sweat）
-内容：[汗]
-持续时间：1000 ms
+柚子（汗）: [汗]
 
 --- 阶段 3 ---
-说话者：TargetIndex 3（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：爱丽丝也想成为匠人！
-持续时间：2500 ms
+爱丽丝: 爱丽丝也想成为匠人！

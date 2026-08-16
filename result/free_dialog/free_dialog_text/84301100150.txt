@@ -1,26 +1,15 @@
 === 自由会话 84301100150 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84301
-场景资源：Field843/Field_843_Zone09
+
+场景：千年EXPO · FieldDate 84301 · Field843/Field_843_Zone09
+说话人：三一学生、千年学生
+触发器：DialogTrigger_Basic_5（场景 8430110）；DialogTrigger_Basic_5（场景 8430130）
 世界地图区域：843008
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：哦哦！超可爱的耶？
-持续时间：2500 ms
+三一学生: 哦哦！超可爱的耶？
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：呵！千年满满都是可爱的机器人…
-持续时间：2500 ms
+三一学生: 呵！千年满满都是可爱的机器人…
 
 --- 阶段 2 ---
-说话者：TargetIndex 2（FieldDate 关联角色：圣亚）
-类型：Heart（Heart）
-内容：[하트]
-持续时间：1000 ms
+千年学生（爱心）: [하트]

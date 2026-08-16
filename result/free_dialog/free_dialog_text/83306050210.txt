@@ -1,26 +1,15 @@
 === 自由会话 83306050210 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83306
-场景资源：Field833/Field_833_Zone05
+
+场景：FieldSeason 833 · FieldDate 83306 · Field833/Field_833_Zone05
+说话人：阳奈
+触发器：DialogTrigger_Basic（场景 83306050）
 世界地图区域：68
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：Bulb（Bulb）
-内容：[전구]
-持续时间：1000 ms
+阳奈（灵感）: [전구]
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：内心独白（Think）
-内容：（这里还有另一本日志）
-持续时间：2500 ms
+阳奈（内心独白）: （这里还有另一本日志）
 
 --- 阶段 2 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：内心独白（Think）
-内容：（「实力都没有进步，是我没有天分吗」…）
-持续时间：2500 ms
+阳奈（内心独白）: （「实力都没有进步，是我没有天分吗」…）

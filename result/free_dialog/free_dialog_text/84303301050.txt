@@ -1,20 +1,12 @@
 === 自由会话 84303301050 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84303
-场景资源：Field843/Field_843_Zone06
+
+场景：千年EXPO · FieldDate 84303 · Field843/Field_843_Zone06
+说话人：桃井、爱丽丝
+触发器：DialogTrigger_Basic_21_susang_3（场景 8430330）
 世界地图区域：843024
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：总，总算冷静下来了…
-持续时间：2500 ms
+桃井: 总，总算冷静下来了…
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：真是太好了……
-持续时间：2500 ms
+爱丽丝: 真是太好了……

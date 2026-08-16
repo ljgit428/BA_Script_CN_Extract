@@ -1,26 +1,15 @@
 === 自由会话 84309100470 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84309
-场景资源：Field843/Field_843_Zone01
+
+场景：千年EXPO · FieldDate 84309 · Field843/Field_843_Zone01
+说话人：实现正义部成员
+触发器：DialogTrigger_Basic_3（场景 8430930）
 世界地图区域：843062
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：东西比想像中还少耶？
-持续时间：2500 ms
+实现正义部成员: 东西比想像中还少耶？
 
 --- 阶段 1 ---
-说话者：TargetIndex 1（FieldDate 关联角色：圣亚）
-类型：对话（Talk）
-内容：可能是因为危险，所以都清掉了吧。
-持续时间：2500 ms
+实现正义部成员: 可能是因为危险，所以都清掉了吧。
 
 --- 阶段 2 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：汗（Sweat）
-内容：[汗]
-持续时间：1000 ms
+实现正义部成员（汗）: [汗]

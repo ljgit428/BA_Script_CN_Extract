@@ -272,12 +272,18 @@ result/free_dialog/
 
 每个 TXT 包含：
 
-- `GroupId`、`FieldDateId` 和可解析到的场景资源
-- 每个阶段的 `TargetIndex`、对话类型和中文内容
-- “谁说什么”的对白记录；`CharacterDialogFieldExcelTable` 本身没有角色名字段，但会通过 `FieldDateExcelTable` 的角色图标（如 `CH0070`）关联 `ScenarioCharacterNameExcelTable`，输出 `关联角色：圣亚（CH0070）`，同时保留 `TargetIndex`
+- 标题行 `=== 自由会话 <GroupId> ===`，随后是场景信息（FieldSeason 名称、`FieldDate`、ArtLevel 场景资源）与其他信息（说话人、触发器、世界地图区域）
+- “谁说什么”的对白记录，每行 `角色: 台词` 且只有一个说话人；非 Talk 类型在角色名后标注（如 `（内心独白）`）
+- 说话人来自 `result/free_dialog/free_dialog_speakers.json`（由 `script/free_dialog/extract_field_speakers.py` 解析 GL designlevel 场景 bundle 得到）：优先 `targets` 精确 NPC（顺序即 `TargetIndex`），其次父节点 NPC、触发器名标注，通用池为互动路人，空 targets 的步骤触发器为 FieldDate 关联主角（833=阳奈、843=圣亚/宁瑠）的独白；没有老师参与。缺失时回退 `FieldDate` 角色图标推断，再退回 `TargetIndex`
 - `LocalizeTW` 转换后的简体中文；若繁中为空则回退到 `LocalizeKR`
 
-例如 `84301200140.txt` 会提取“今天又会发生什么事呢～”、汗的表情和“根本上不了课……”，并按阶段保留为同一段自由会话。它会从 `FieldDateId=84301` 找到 `CH0070`，再映射为“圣亚”；`TargetIndex` 仍会保留，因为原表没有直接声明每个阶段的说话人姓名。`843` 已标记为“千年EXPO”；其他未建立中文名称映射的 Field 会显示原始 `FieldSeasonId`。
+例如 `84300300310.txt` 会输出场景头（千年EXPO · FieldDate 84300 · Field843/Field_843_Zone02）与说话人“宁瑠、莉央”，正文按阶段输出 `宁瑠: 千年博览会的悲剧收场？`、`莉央: […]` 等对白。`843` 已标记为“千年EXPO”；其他未建立中文名称映射的 Field 会显示原始 `FieldSeasonId`。
+
+说话人映射的生成方式见 `result/free_dialog/README_speakers.md`：
+
+```bash
+python script/free_dialog/extract_field_speakers.py
+```
 
 报告目录包含：
 

@@ -1,20 +1,12 @@
 === 自由会话 83306080130 ===
-场景：FieldSeason 833
-关联角色：阳奈（NP0205）
-FieldDateId：83306
-场景资源：Field833/Field_833_Zone08
+
+场景：FieldSeason 833 · FieldDate 83306 · Field833/Field_833_Zone08
+说话人：伊吹
+触发器：DialogTrigger_Basic_6_ibuki（场景 83306080）
 世界地图区域：71
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 0 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：茱莉前辈说要做好吃的给我吃！
-持续时间：2500 ms
+伊吹: 茱莉前辈说要做好吃的给我吃！
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：阳奈）
-类型：对话（Talk）
-内容：伊吹！好期待～！
-持续时间：2500 ms
+伊吹: 伊吹！好期待～！

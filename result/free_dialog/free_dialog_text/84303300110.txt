@@ -1,20 +1,12 @@
 === 自由会话 84303300110 ===
-场景：千年EXPO
-关联角色：圣亚（CH0070）
-FieldDateId：84303
-场景资源：Field843/Field_843_Zone06
+
+场景：千年EXPO · FieldDate 84303 · Field843/Field_843_Zone06
+说话人：圣亚
+触发器：DialogTrigger_Basic（场景 8430330）
 世界地图区域：843024
-来源表：CharacterDialogFieldExcelTable.json
-说明：CharacterDialogField 未提供逐阶段角色名；关联角色由 FieldDate 角色图标映射，以下仍保留原始 TargetIndex。
 
 --- 阶段 1 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：内心独白（Think）
-内容：（真是人山人海）
-持续时间：2500 ms
+圣亚（内心独白）: （真是人山人海）
 
 --- 阶段 2 ---
-说话者：TargetIndex 0（FieldDate 关联角色：圣亚）
-类型：内心独白（Think）
-内容：（…看来得先跟爱丽丝会合）
-持续时间：2500 ms
+圣亚（内心独白）: （…看来得先跟爱丽丝会合）
